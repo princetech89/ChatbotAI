@@ -192,25 +192,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get AI response with optimized settings for faster response
       try {
         // Use faster model and optimized prompt for quick responses
+        console.log('Sending request to Gemini API for:', content);
         const response = await genai.models.generateContent({
           model: "gemini-2.5-flash",
-          config: {
-            maxOutputTokens: 1000, // Limit response length for faster processing
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-          },
           contents: [
             {
-              role: "user",
+              role: "user", 
               parts: [{ 
-                text: `Be helpful, concise, and engaging. ${shouldGenerateImage ? 'Visual content will be generated.' : ''}\n\n${content}` 
+                text: `You are a helpful AI assistant. Provide clear, accurate, and engaging responses.\n\nUser question: ${content}` 
               }]
             }
           ],
         });
+        console.log('Gemini API response:', response);
 
-        let aiResponse = response.text || "I apologize, but I couldn't generate a response. Please try again.";
+        let aiResponse = response.text;
+        
+        // Better error handling for empty responses
+        if (!aiResponse || aiResponse.trim() === '') {
+          aiResponse = "I'm here to help! Could you please rephrase your question or provide more details?";
+        }
         
         // Generate contextual quick replies
         const quickReplies = generateQuickReplies(content, aiResponse, sentiment);
@@ -224,16 +225,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           aiResponse = "Great question! I'm happy to help. ✨\n\n" + aiResponse;
         }
         
-        // Add notes for different content types with emojis
-        if (shouldGenerateImage || shouldAutoGenerateImage) {
-          aiResponse += "\n\n🎨 Generating a relevant image...";
-        }
-        if (isSearchQuery) {
-          aiResponse += "\n\n🔍 Researching and gathering information...";
-        }
-        if (shouldGenerateChart) {
-          aiResponse += "\n\n📊 Creating data visualization...";
-        }
+        // Only add visual content notes if explicitly requested
+        // Remove automatic visual indicators for faster, cleaner responses
 
         // Save AI response with enhanced features
         const botMessage = await storage.createMessage({

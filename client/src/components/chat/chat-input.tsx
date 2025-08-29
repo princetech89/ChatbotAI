@@ -36,10 +36,10 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (message.length > 2) {
+    if (message.length > 1) {
       const filtered = textPredictions.filter(pred => 
         pred.toLowerCase().startsWith(message.toLowerCase()) ||
-        pred.toLowerCase().includes(message.toLowerCase())
+        pred.toLowerCase().includes(' ' + message.toLowerCase())
       ).slice(0, 5);
       setSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);

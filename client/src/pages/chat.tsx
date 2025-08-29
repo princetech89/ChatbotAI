@@ -108,11 +108,8 @@ export default function ChatPage() {
 
   const handleToggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
-    if (!isFullscreen) {
-      document.documentElement.requestFullscreen?.();
-    } else {
-      document.exitFullscreen?.();
-    }
+    // Note: Browser fullscreen API is limited in some environments, 
+    // so we'll use CSS-based fullscreen mode for better compatibility
   };
 
   if (!currentConversationId) {
@@ -138,8 +135,9 @@ export default function ChatPage() {
       <main className="flex-1 overflow-hidden">
         <div 
           ref={chatContainerRef}
-          className={cn("chat-container overflow-y-auto px-4 py-6 scroll-smooth", isFullscreen && "fullscreen")} 
+          className={cn("chat-container px-4 py-6", isFullscreen && "fullscreen")} 
           data-testid="chat-container"
+          style={{ overflowY: 'auto', scrollBehavior: 'smooth' }}
         >
           
           {/* Welcome Message */}

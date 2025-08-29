@@ -111,7 +111,7 @@ User question: ${content}`
             
             // Note: only this gemini model supports image generation
             const imageResponse = await genai.models.generateContent({
-              model: "gemini-2.0-flash-preview-image-generation",
+              model: "gemini-2.0-flash-exp",
               contents: [{ role: "user", parts: [{ text: `Create a high-quality, detailed image: ${enhancedPrompt}` }] }],
               config: {
                 responseModalities: ["TEXT", "IMAGE"],

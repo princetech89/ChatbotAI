@@ -194,10 +194,8 @@ User question: ${content}`
               contents: chartPrompt
             });
 
-            console.log('Chart response:', chartResponse.text);
             if (chartResponse.text) {
               const chartData = JSON.parse(chartResponse.text);
-              console.log('Generated chart data:', chartData);
               // Save chart message
               const chartMessage = await storage.createMessage({
                 conversationId,
@@ -205,7 +203,6 @@ User question: ${content}`
                 role: "assistant",
               });
               chartGenerated = true;
-              console.log('Chart message saved:', chartMessage.id);
             }
           } catch (error) {
             console.error("Chart generation error:", error);
@@ -230,7 +227,6 @@ User question: ${content}`
                 role: "assistant",
               });
               chartGenerated = true;
-              console.log('Fallback chart created due to error:', fallbackMessage.id);
             } catch (fallbackError) {
               console.error('Fallback chart creation failed:', fallbackError);
             }
@@ -252,7 +248,6 @@ User question: ${content}`
             const enhancedPrompt = imagePrompt || content;
             
             // Note: only this gemini model supports image generation
-            console.log('Attempting image generation for:', enhancedPrompt);
             const imageResponse = await genai.models.generateContent({
               model: "gemini-2.0-flash-exp",
               contents: [{ role: "user", parts: [{ text: `Create a high-quality, detailed image: ${enhancedPrompt}` }] }],
@@ -261,11 +256,9 @@ User question: ${content}`
               },
             });
 
-            console.log('Image response candidates:', imageResponse.candidates?.length || 0);
             if (imageResponse.candidates && imageResponse.candidates[0]?.content?.parts) {
               for (const part of imageResponse.candidates[0].content.parts) {
                 if (part.inlineData && part.inlineData.data) {
-                  console.log('Image data found, length:', part.inlineData.data.length);
                   // Save image message
                   const imageMessage = await storage.createMessage({
                     conversationId,
@@ -273,14 +266,9 @@ User question: ${content}`
                     role: "assistant",
                   });
                   imageGenerated = true;
-                  console.log('Image message saved:', imageMessage.id);
                   break;
-                } else if (part.text) {
-                  console.log('Text part found:', part.text.substring(0, 100));
                 }
               }
-            } else {
-              console.log('No image candidates found in response');
             }
           } catch (imageError) {
             console.error('Image generation failed:', imageError);
@@ -305,7 +293,6 @@ User question: ${content}`
                   content: `CHART_DATA:${JSON.stringify(fallbackChart)}`,
                   role: "assistant",
                 });
-                console.log('Fallback chart created:', fallbackChartMessage.id);
               } catch (fallbackError) {
                 console.error('Fallback chart creation failed:', fallbackError);
               }

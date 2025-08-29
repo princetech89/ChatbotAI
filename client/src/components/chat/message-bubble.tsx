@@ -48,6 +48,7 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
   const [isExpanded, setIsExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const isUser = message.role === "user";
   const detectedCategory = category || (isUser ? detectCategory(message.content) : 'general');
   const isLongMessage = message.content.length > 300;
@@ -92,7 +93,11 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
   };
 
   return (
-    <div className={cn("flex", isUser ? "justify-end" : "justify-start", isLatest && "fade-in")}>
+    <div className={cn(
+      "flex transition-all duration-300 ease-out", 
+      isUser ? "justify-end" : "justify-start", 
+      isLatest && "animate-in slide-in-from-bottom-2 fade-in duration-500"
+    )}>
       <div className={cn("max-w-xs md:max-w-2xl", !isUser && "lg:max-w-4xl w-full")}>
         {/* Category Badge for user messages */}
         {isUser && (
@@ -103,10 +108,16 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
           </div>
         )}
         
-        <div className={cn(
-          "rounded-2xl px-4 py-3 relative group",
-          isUser ? "message-bubble-user rounded-br-md" : "message-bubble-bot rounded-bl-md"
-        )}>
+        <div 
+          className={cn(
+            "rounded-2xl px-4 py-3 relative group transition-all duration-300 ease-out transform",
+            "hover:scale-[1.02] hover:shadow-lg",
+            isUser ? "message-bubble-user rounded-br-md hover:shadow-blue-500/20" : "message-bubble-bot rounded-bl-md hover:shadow-gray-500/20",
+            isHovered && "scale-[1.01]"
+          )}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           {/* Text Content */}
           {textContent && (
             <div className="text-sm leading-relaxed whitespace-pre-wrap" data-testid={`text-message-${message.id}`}>
@@ -116,31 +127,38 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
           
           {/* Generated Image */}
           {hasImage && imageUrl && (
-            <div className="mt-3">
-              <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
+            <div className="mt-3 animate-in fade-in duration-700 delay-300">
+              <div className="relative rounded-lg overflow-hidden border border-border max-w-md group cursor-pointer">
                 <img
                   src={imageUrl}
                   alt="Generated Image"
                   className={cn(
-                    "w-full h-auto transition-opacity duration-300",
-                    imageLoaded ? "opacity-100" : "opacity-0"
+                    "w-full h-auto transition-all duration-500 transform",
+                    "hover:scale-105 hover:brightness-110",
+                    imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
                   )}
                   onLoad={() => setImageLoaded(true)}
                   data-testid={`image-${message.id}`}
                 />
                 {!imageLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse">
-                    <div className="text-sm text-muted-foreground">Loading image...</div>
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                    <div className="relative">
+                      <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                      <div className="text-sm text-muted-foreground mt-2 text-center animate-pulse">Loading image...</div>
+                    </div>
                   </div>
                 )}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
               </div>
             </div>
           )}
 
           {/* Generated Chart */}
           {hasChart && chartData && (
-            <div className="mt-3">
-              <ChartVisualization chartData={chartData} />
+            <div className="mt-3 animate-in slide-in-from-left duration-700 delay-500">
+              <div className="transform transition-all duration-300 hover:scale-[1.02]">
+                <ChartVisualization chartData={chartData} />
+              </div>
             </div>
           )}
           
@@ -149,14 +167,14 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
             <Button
               variant="ghost"
               size="sm"
-              className="mt-2 p-1 h-auto text-xs opacity-70 hover:opacity-100"
+              className="mt-2 p-1 h-auto text-xs opacity-70 hover:opacity-100 transition-all duration-200 hover:scale-105 hover:bg-primary/10"
               onClick={() => setIsExpanded(!isExpanded)}
               data-testid={`button-expand-${message.id}`}
             >
               {isExpanded ? (
-                <>Show Less <ChevronUp className="h-3 w-3 ml-1" /></>
+                <>Show Less <ChevronUp className="h-3 w-3 ml-1 transition-transform duration-200" /></>
               ) : (
-                <>Show More <ChevronDown className="h-3 w-3 ml-1" /></>
+                <>Show More <ChevronDown className="h-3 w-3 ml-1 transition-transform duration-200" /></>
               )}
             </Button>
           )}
@@ -166,11 +184,20 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
             <Button
               variant="ghost"
               size="sm"
-              className="absolute top-2 right-2 p-1 opacity-0 group-hover:opacity-70 hover:opacity-100 transition-opacity"
+              className={cn(
+                "absolute top-2 right-2 p-1 transition-all duration-300 transform",
+                "opacity-0 group-hover:opacity-70 hover:opacity-100 hover:scale-110",
+                "hover:bg-primary/20 hover:text-primary",
+                copied && "opacity-100 text-green-500"
+              )}
               onClick={handleCopy}
               data-testid={`button-copy-${message.id}`}
             >
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              {copied ? (
+                <Check className="h-3 w-3 animate-in zoom-in duration-200" /> 
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
             </Button>
           )}
         </div>

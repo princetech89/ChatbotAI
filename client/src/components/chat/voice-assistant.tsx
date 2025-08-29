@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface VoiceAssistantProps {
   onVoiceInput: (transcript: string) => void;
@@ -123,20 +124,24 @@ export default function VoiceAssistant({
   }
 
   return (
-    <div className="flex gap-2" data-testid="voice-assistant">
+    <div className="flex gap-2 animate-in fade-in duration-300" data-testid="voice-assistant">
       {/* Voice Input Button */}
       <Button
         variant={isListening ? "default" : "outline"}
         size="sm"
         onClick={isListening ? stopListening : startListening}
         disabled={isSpeaking}
-        className={isListening ? "bg-red-500 hover:bg-red-600 text-white" : ""}
+        className={cn(
+          "transition-all duration-300 transform hover:scale-110 active:scale-95",
+          isListening ? "bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-lg shadow-red-500/30" : 
+          "hover:shadow-lg hover:shadow-primary/20"
+        )}
         data-testid="button-voice-input"
       >
         {isListening ? (
           <>
-            <MicOff className="h-4 w-4 mr-1" />
-            Stop
+            <MicOff className="h-4 w-4 mr-1 animate-bounce" />
+            <span className="animate-pulse">Stop</span>
           </>
         ) : (
           <>
@@ -152,13 +157,17 @@ export default function VoiceAssistant({
         size="sm"
         onClick={isSpeaking ? stopSpeaking : () => {}}
         disabled={isListening || !isSpeaking}
-        className={isSpeaking ? "bg-blue-500 hover:bg-blue-600 text-white" : ""}
+        className={cn(
+          "transition-all duration-300 transform hover:scale-110 active:scale-95",
+          isSpeaking ? "bg-blue-500 hover:bg-blue-600 text-white animate-pulse shadow-lg shadow-blue-500/30" : 
+          "hover:shadow-lg hover:shadow-primary/20"
+        )}
         data-testid="button-speak-response"
       >
         {isSpeaking ? (
           <>
-            <VolumeX className="h-4 w-4 mr-1" />
-            Stop
+            <VolumeX className="h-4 w-4 mr-1 animate-pulse" />
+            <span className="animate-pulse">Stop</span>
           </>
         ) : (
           <>

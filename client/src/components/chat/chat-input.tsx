@@ -35,6 +35,8 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState(0);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -56,6 +58,7 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
       onSendMessage(message.trim());
       setMessage("");
       setShowSuggestions(false);
+      setIsTyping(false);
     }
   };
 
@@ -128,17 +131,39 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
           
           {/* Message Input */}
           <div className="flex-1">
-            <Textarea
-              ref={inputRef}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
-              className="w-full px-4 py-3 bg-input border border-border rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 max-h-32 min-h-[48px]"
-              rows={1}
-              disabled={disabled}
-              data-testid="textarea-message"
-            />
+            <div className="relative">
+              <Textarea
+                ref={inputRef}
+                value={message}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  setIsTyping(e.target.value.length > 0);
+                }}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder="Type your message..."
+                className={cn(
+                  "w-full px-4 py-3 bg-input border border-border rounded-2xl resize-none",
+                  "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
+                  "transition-all duration-300 max-h-32 min-h-[48px] transform",
+                  isFocused && "scale-[1.02] shadow-lg ring-2 ring-primary/20",
+                  isTyping && "border-primary/50"
+                )}
+                rows={1}
+                disabled={disabled}
+                data-testid="textarea-message"
+              />
+              
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="absolute bottom-1 right-3 flex gap-1">
+                  <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  <div className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                  <div className="w-1 h-1 bg-primary rounded-full animate-bounce"></div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Voice Assistant */}
@@ -154,13 +179,18 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
           <Button 
             type="submit"
             className={cn(
-              "bg-primary text-primary-foreground p-3 rounded-xl hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200",
-              (!message.trim() || disabled) && "opacity-50 cursor-not-allowed"
+              "bg-primary text-primary-foreground p-3 rounded-xl transition-all duration-300 transform",
+              "hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/30",
+              "focus:outline-none focus:ring-2 focus:ring-ring active:scale-95",
+              message.trim() && !disabled ? "pulse-glow" : "opacity-50 cursor-not-allowed"
             )}
             disabled={!message.trim() || disabled}
             data-testid="button-send"
           >
-            <Send className="h-4 w-4" />
+            <Send className={cn(
+              "h-4 w-4 transition-all duration-200",
+              message.trim() && !disabled && "animate-pulse"
+            )} />
           </Button>
         </form>
       </div>

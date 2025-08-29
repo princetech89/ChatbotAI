@@ -75,7 +75,7 @@ export function LandingPage() {
           {/* Logo/Icon */}
           <div className="relative">
             <div className="w-24 h-24 mx-auto bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center shadow-2xl animate-pulse-glow">
-              <MessageCircle className="w-12 h-12 text-white animate-bounce-subtle" />
+              <span className="text-white font-bold text-4xl animate-bounce-subtle">PC</span>
             </div>
             <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-full blur-xl animate-spin-slow" />
           </div>
@@ -83,8 +83,11 @@ export function LandingPage() {
           {/* Title */}
           <div className="space-y-4">
             <h1 className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent animate-gradient-x">
-              AI Assistant
+              Prince Chourasiya
             </h1>
+            <h2 className="text-3xl md:text-4xl font-semibold text-muted-foreground">
+              AI Assistant
+            </h2>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Experience the future of conversations with advanced AI technology, 
               image analysis, and intelligent insights
@@ -176,10 +179,28 @@ export function LandingPage() {
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 border-2 border-primary/50 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-primary rounded-full mt-2 animate-pulse" />
+      {/* Footer with website link */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-bounce">
+            <div className="w-6 h-10 border-2 border-primary/50 rounded-full flex justify-center">
+              <div className="w-1 h-3 bg-primary rounded-full mt-2 animate-pulse" />
+            </div>
+          </div>
+          <div className="glass-morph px-4 py-2 rounded-full">
+            <a 
+              href="https://princechourasiya.dev" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
+              data-testid="website-link"
+            >
+              <div className="w-4 h-4 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-xs">PC</span>
+              </div>
+              <span>princechourasiya.dev</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>

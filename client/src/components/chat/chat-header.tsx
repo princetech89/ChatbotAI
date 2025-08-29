@@ -1,4 +1,4 @@
-import { Trash2, Settings, Maximize2, Minimize2, ArrowLeft } from "lucide-react";
+import { Trash2, Settings, Maximize2, Minimize2, ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
@@ -23,15 +23,25 @@ export function ChatHeader({ onClearHistory, onSettings, isFullscreen, onToggleF
           </Button>
         </Link>
         <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center breathe morph-button">
-          <i className="fas fa-robot text-primary-foreground text-lg"></i>
+          <span className="text-primary-foreground font-bold text-lg">PC</span>
         </div>
         <div>
-          <h1 className="text-lg font-semibold gradient-text">AI Assistant</h1>
-          <p className="text-sm text-muted-foreground float">Smart Search & Analysis</p>
+          <h1 className="text-lg font-semibold gradient-text">Prince Chourasiya</h1>
+          <p className="text-sm text-muted-foreground float">AI Assistant & Developer</p>
         </div>
       </div>
       
       <div className="flex items-center space-x-3">
+        <a
+          href="https://princechourasiya.dev"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors duration-200"
+          data-testid="website-link-header"
+          title="Visit Prince Chourasiya's website"
+        >
+          <ExternalLink className="h-4 w-4" />
+        </a>
         <Button
           variant="ghost"
           size="sm"

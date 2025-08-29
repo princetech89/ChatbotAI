@@ -6,12 +6,14 @@ import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { ChatInput } from "@/components/chat/chat-input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import type { Message, Conversation } from "@shared/schema";
 import { Bot } from "lucide-react";
 
 export default function ChatPage() {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -104,6 +106,15 @@ export default function ChatPage() {
     });
   };
 
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+    if (!isFullscreen) {
+      document.documentElement.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  };
+
   if (!currentConversationId) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -116,16 +127,18 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto">
+    <div className={cn("flex flex-col h-screen max-w-4xl mx-auto", isFullscreen && "fullscreen-mode max-w-none")}>
       <ChatHeader 
         onClearHistory={handleClearHistory}
         onSettings={handleSettings}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={handleToggleFullscreen}
       />
 
       <main className="flex-1 overflow-hidden">
         <div 
           ref={chatContainerRef}
-          className="chat-container overflow-y-auto px-4 py-6 scroll-smooth" 
+          className={cn("chat-container overflow-y-auto px-4 py-6 scroll-smooth", isFullscreen && "fullscreen")} 
           data-testid="chat-container"
         >
           

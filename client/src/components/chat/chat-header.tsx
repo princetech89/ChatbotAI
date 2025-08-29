@@ -10,7 +10,7 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ onClearHistory, onSettings, isFullscreen, onToggleFullscreen }: ChatHeaderProps) {
   return (
-    <header className="bg-background border-b border-border px-4 py-4 flex items-center justify-between shadow-sm">
+    <header className="glass-morph border-b border-border px-4 py-4 flex items-center justify-between shadow-sm corner-accent">
       <div className="flex items-center space-x-3">
         <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center breathe morph-button">
           <i className="fas fa-robot text-primary-foreground text-lg"></i>

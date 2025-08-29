@@ -94,7 +94,7 @@ function generateQuickReplies(userMessage: string, botResponse: string, sentimen
   replies.push("That's helpful!", "Can you elaborate?", "What's next?");
   
   // Return unique replies, limited to 4 for better UX
-  return [...new Set(replies)].slice(0, 4);
+  return Array.from(new Set(replies)).slice(0, 4);
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {

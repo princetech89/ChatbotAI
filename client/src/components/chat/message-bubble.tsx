@@ -42,10 +42,10 @@ function formatMarkdownContent(text: string): string {
   formatted = formatted.replace(/\n/g, '<br/>');
   
   // Wrap orphaned lists
-  formatted = formatted.replace(/(<li class="markdown-li">(?:(?!<\/li>).)*<\/li>)/gs, (match) => {
+  formatted = formatted.replace(/(<li class="markdown-li">(?:(?!<\/li>).)*<\/li>)/g, (match) => {
     return `<ul class="markdown-ul">${match}</ul>`;
   });
-  formatted = formatted.replace(/(<li class="markdown-numbered-li">(?:(?!<\/li>).)*<\/li>)/gs, (match) => {
+  formatted = formatted.replace(/(<li class="markdown-numbered-li">(?:(?!<\/li>).)*<\/li>)/g, (match) => {
     return `<ol class="markdown-ol">${match}</ol>`;
   });
   
@@ -132,7 +132,7 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
       chartData = JSON.parse(message.content.replace('CHART_DATA:', ''));
       textContent = '';
     } catch (error) {
-      console.error('Error parsing chart data:', error);
+      // Error parsing chart data
       textContent = 'Error displaying chart data';
     }
   }
@@ -150,7 +150,7 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      // Failed to copy text
     }
   };
 

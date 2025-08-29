@@ -93,7 +93,7 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
   };
 
   const handleSpeakResponse = (text: string) => {
-    console.log('Speaking response:', text.substring(0, 50) + '...');
+    // Speaking response
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

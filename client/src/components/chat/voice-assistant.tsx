@@ -46,7 +46,7 @@ export default function VoiceAssistant({
         };
 
         recognitionRef.current.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
+          // Speech recognition error
           setIsListening(false);
         };
 
@@ -75,7 +75,7 @@ export default function VoiceAssistant({
       try {
         recognitionRef.current.start();
       } catch (error) {
-        console.error('Error starting speech recognition:', error);
+        // Error starting speech recognition
       }
     }
   };

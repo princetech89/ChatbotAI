@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Lightbulb, PenTool, Search, Settings, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import VoiceAssistant from './voice-assistant';
 
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
   disabled?: boolean;
+  lastAssistantMessage?: string;
 }
 
 const textPredictions = [
@@ -28,7 +30,7 @@ const textPredictions = [
   "Can you generate an image of"
 ];
 
-export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
+export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: ChatInputProps) {
   const [message, setMessage] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -55,6 +57,20 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
       setMessage("");
       setShowSuggestions(false);
     }
+  };
+
+  const handleVoiceInput = (transcript: string) => {
+    setMessage(transcript);
+    if (transcript.trim()) {
+      setTimeout(() => {
+        onSendMessage(transcript.trim());
+        setMessage("");
+      }, 500);
+    }
+  };
+
+  const handleSpeakResponse = (text: string) => {
+    console.log('Speaking response:', text.substring(0, 50) + '...');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -140,6 +156,15 @@ export function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Voice Assistant */}
+          <div className="shrink-0">
+            <VoiceAssistant 
+              onVoiceInput={handleVoiceInput}
+              onSpeakResponse={handleSpeakResponse}
+              isEnabled={!disabled}
+            />
           </div>
 
           {/* Send Button */}

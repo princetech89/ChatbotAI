@@ -61,12 +61,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "user",
       });
 
-      // Check if user is requesting image generation
+      // Enhanced content analysis for different types of requests
       const shouldGenerateImage = content.toLowerCase().includes('generate image') || 
                                  content.toLowerCase().includes('create image') ||
                                  content.toLowerCase().includes('draw') ||
                                  content.toLowerCase().includes('picture of') ||
                                  content.toLowerCase().includes('show me');
+
+      // Check for search queries
+      const isSearchQuery = content.toLowerCase().includes('search for') ||
+                           content.toLowerCase().includes('find information') ||
+                           content.toLowerCase().includes('look up') ||
+                           content.toLowerCase().includes('research') ||
+                           content.includes('?') && (content.toLowerCase().includes('what') || 
+                                                   content.toLowerCase().includes('how') ||
+                                                   content.toLowerCase().includes('when') ||
+                                                   content.toLowerCase().includes('where') ||
+                                                   content.toLowerCase().includes('why'));
+
+      // Check for data visualization requests
+      const shouldGenerateChart = content.toLowerCase().includes('chart') ||
+                                 content.toLowerCase().includes('graph') ||
+                                 content.toLowerCase().includes('visualization') ||
+                                 content.toLowerCase().includes('data') ||
+                                 content.toLowerCase().includes('statistics') ||
+                                 content.toLowerCase().includes('compare') ||
+                                 content.toLowerCase().includes('trend');
 
       // Get AI response
       try {
@@ -89,9 +109,15 @@ User question: ${content}`
 
         let aiResponse = response.text || "I apologize, but I couldn't generate a response. Please try again.";
         
-        // If image generation is requested, add a note about it
+        // Add notes for different content types
         if (shouldGenerateImage) {
           aiResponse += "\n\n🎨 Generating an image based on your request...";
+        }
+        if (isSearchQuery) {
+          aiResponse += "\n\n🔍 Searching for relevant information...";
+        }
+        if (shouldGenerateChart) {
+          aiResponse += "\n\n📊 Generating data visualization...";
         }
 
         // Save AI response
@@ -100,6 +126,53 @@ User question: ${content}`
           content: aiResponse,
           role: "assistant",
         });
+
+        // Generate chart/visualization if requested
+        let chartGenerated = false;
+        if (shouldGenerateChart) {
+          try {
+            // Generate chart data based on user request
+            const chartResponse = await genai.models.generateContent({
+              model: "gemini-2.5-pro",
+              config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                  type: "object",
+                  properties: {
+                    chartType: { type: "string", enum: ["bar", "line", "pie", "area", "scatter"] },
+                    title: { type: "string" },
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          label: { type: "string" },
+                          value: { type: "number" },
+                          category: { type: "string" }
+                        }
+                      }
+                    },
+                    description: { type: "string" }
+                  }
+                }
+              },
+              contents: `Generate sample chart data for this request: "${content}". Create realistic data that would be relevant to this query. Include 5-10 data points.`
+            });
+
+            if (chartResponse.text) {
+              const chartData = JSON.parse(chartResponse.text);
+              // Save chart message
+              const chartMessage = await storage.createMessage({
+                conversationId,
+                content: `CHART_DATA:${JSON.stringify(chartData)}`,
+                role: "assistant",
+              });
+              chartGenerated = true;
+            }
+          } catch (error) {
+            console.error("Chart generation error:", error);
+          }
+        }
 
         // Generate image if requested
         let imageGenerated = false;

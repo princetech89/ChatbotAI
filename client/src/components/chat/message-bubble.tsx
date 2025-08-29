@@ -3,6 +3,7 @@ import type { Message } from "@shared/schema";
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ChartVisualization from './chart-visualization';
 
 interface MessageBubbleProps {
   message: Message;
@@ -52,11 +53,27 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
   const isLongMessage = message.content.length > 300;
   const shouldTruncate = isLongMessage && !isExpanded;
   
-  // Check if message contains an image
+  // Check if message contains an image or chart
   const imageMatch = message.content.match(/!\[.*?\]\((data:image\/[^)]+)\)/);
   const hasImage = !!imageMatch;
+  const hasChart = message.content.startsWith('CHART_DATA:');
   const imageUrl = imageMatch?.[1];
-  const textContent = hasImage ? message.content.replace(/!\[.*?\]\([^)]+\)/, '').trim() : message.content;
+  
+  let textContent = message.content;
+  let chartData = null;
+  
+  if (hasImage) {
+    textContent = message.content.replace(/!\[.*?\]\([^)]+\)/, '').trim();
+  } else if (hasChart) {
+    try {
+      chartData = JSON.parse(message.content.replace('CHART_DATA:', ''));
+      textContent = '';
+    } catch (error) {
+      console.error('Error parsing chart data:', error);
+      textContent = 'Error displaying chart data';
+    }
+  }
+  
   const displayContent = shouldTruncate ? textContent.substring(0, 300) + "..." : textContent;
   
   const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { 
@@ -117,6 +134,13 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Generated Chart */}
+          {hasChart && chartData && (
+            <div className="mt-3">
+              <ChartVisualization chartData={chartData} />
             </div>
           )}
           

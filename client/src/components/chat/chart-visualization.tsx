@@ -37,6 +37,17 @@ interface ChartVisualizationProps {
 const COLORS = ['#0084FF', '#36C5F0', '#2EB67D', '#ECB22E', '#E01E5A', '#4A90E2', '#7ED321', '#F5A623'];
 
 export default function ChartVisualization({ chartData }: ChartVisualizationProps) {
+  // Add safety checks for undefined data
+  if (!chartData || !chartData.data || !Array.isArray(chartData.data) || chartData.data.length === 0) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+          <p>📊 No chart data available</p>
+        </div>
+      </div>
+    );
+  }
+
   const { chartType, title, data, description } = chartData;
 
   const renderChart = () => {
@@ -78,7 +89,7 @@ export default function ChartVisualization({ chartData }: ChartVisualizationProp
               fill="#0084FF"
               label={({ label, percent }) => `${label}: ${(percent * 100).toFixed(0)}%`}
             >
-              {data.map((entry, index) => (
+              {data?.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
@@ -144,7 +155,7 @@ export default function ChartVisualization({ chartData }: ChartVisualizationProp
       </div>
       
       <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-        Generated visualization • {data.length} data points
+        Generated visualization • {data?.length || 0} data points
       </div>
     </div>
   );

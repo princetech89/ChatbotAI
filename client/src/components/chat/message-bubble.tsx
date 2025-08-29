@@ -160,7 +160,7 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
           )}
 
           {/* Generated Chart */}
-          {hasChart && chartData && (
+          {hasChart && chartData && chartData.data && Array.isArray(chartData.data) && chartData.data.length > 0 && (
             <div className="mt-3 animate-in slide-in-from-left duration-700 delay-500">
               <div className="transform transition-all duration-300 hover:scale-[1.02]">
                 <ChartVisualization chartData={chartData} />

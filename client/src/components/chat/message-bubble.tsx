@@ -4,11 +4,14 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ChartVisualization from './chart-visualization';
+import { QuickReplies } from './quick-replies';
 
 interface MessageBubbleProps {
   message: Message;
   isLatest?: boolean;
   category?: string;
+  onQuickReply?: (reply: string) => void;
+  disabled?: boolean;
 }
 
 function detectCategory(content: string): string {
@@ -44,7 +47,7 @@ function getCategoryLabel(category: string): string {
   return labels[category] || 'General';
 }
 
-export function MessageBubble({ message, isLatest, category }: MessageBubbleProps) {
+export function MessageBubble({ message, isLatest, category, onQuickReply, disabled }: MessageBubbleProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -59,6 +62,9 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
   const hasImage = !!imageMatch;
   const hasChart = message.content.startsWith('CHART_DATA:');
   const imageUrl = imageMatch?.[1];
+  
+  // Parse quick replies if available
+  const quickReplies = message.quickReplies ? JSON.parse(message.quickReplies) : null;
   
   let textContent = message.content;
   let chartData = null;
@@ -160,6 +166,15 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
                 <ChartVisualization chartData={chartData} />
               </div>
             </div>
+          )}
+          
+          {/* Quick Replies */}
+          {!isUser && quickReplies && onQuickReply && (
+            <QuickReplies 
+              replies={quickReplies} 
+              onReplySelect={onQuickReply}
+              disabled={disabled}
+            />
           )}
           
           {/* Expand/Collapse for long messages */}

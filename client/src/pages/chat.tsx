@@ -92,6 +92,10 @@ export default function ChatPage() {
     }
   };
 
+  const handleQuickReply = (reply: string) => {
+    handleSendMessage(reply);
+  };
+
   const handleClearHistory = () => {
     if (currentConversationId) {
       // Create a new conversation to replace the current one
@@ -159,6 +163,8 @@ export default function ChatPage() {
                 key={message.id} 
                 message={message}
                 isLatest={index === messages.length - 1}
+                onQuickReply={handleQuickReply}
+                disabled={sendMessageMutation.isPending}
               />
             ))}
 

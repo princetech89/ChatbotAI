@@ -62,6 +62,9 @@ export class MemStorage implements IStorage {
       title: insertConversation.title,
       userId: insertConversation.userId || null,
       createdAt: new Date(),
+      context: insertConversation.context || null,
+      persona: insertConversation.persona || "friendly",
+      preferences: insertConversation.preferences || null,
     };
     this.conversations.set(id, conversation);
     return conversation;
@@ -91,6 +94,10 @@ export class MemStorage implements IStorage {
       content: insertMessage.content,
       role: insertMessage.role,
       timestamp: new Date(),
+      quickReplies: insertMessage.quickReplies || null,
+      messageType: insertMessage.messageType || "text",
+      sentiment: insertMessage.sentiment || null,
+      metadata: insertMessage.metadata || null,
     };
     this.messages.set(id, message);
     return message;

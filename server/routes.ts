@@ -8,6 +8,79 @@ const genai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || "default_key"
 });
 
+// Helper functions for enhanced chatbot features
+function analyzeSentiment(text: string): "positive" | "negative" | "neutral" | "confused" | "frustrated" {
+  const lowerText = text.toLowerCase();
+  
+  // Check for frustration indicators
+  if (lowerText.includes('frustrated') || lowerText.includes('annoying') || 
+      lowerText.includes('stupid') || lowerText.includes('wrong') ||
+      lowerText.includes('terrible') || lowerText.includes('awful')) {
+    return 'frustrated';
+  }
+  
+  // Check for confusion indicators
+  if (lowerText.includes('confused') || lowerText.includes('don\'t understand') ||
+      lowerText.includes('unclear') || lowerText.includes('what do you mean') ||
+      lowerText.includes('i don\'t get it') || lowerText.includes('explain')) {
+    return 'confused';
+  }
+  
+  // Check for positive indicators
+  if (lowerText.includes('thank') || lowerText.includes('great') ||
+      lowerText.includes('awesome') || lowerText.includes('perfect') ||
+      lowerText.includes('excellent') || lowerText.includes('love')) {
+    return 'positive';
+  }
+  
+  // Check for negative indicators
+  if (lowerText.includes('bad') || lowerText.includes('hate') ||
+      lowerText.includes('dislike') || lowerText.includes('problem') ||
+      lowerText.includes('issue') || lowerText.includes('error')) {
+    return 'negative';
+  }
+  
+  return 'neutral';
+}
+
+function generateQuickReplies(userMessage: string, botResponse: string, sentiment: string): string[] {
+  const replies: string[] = [];
+  const lowerUserMessage = userMessage.toLowerCase();
+  const lowerBotResponse = botResponse.toLowerCase();
+  
+  // Context-aware replies based on user message type
+  if (lowerUserMessage.includes('explain') || lowerUserMessage.includes('how')) {
+    replies.push("Can you explain more?", "Give me an example", "What are the steps?");
+  }
+  
+  if (lowerUserMessage.includes('compare') || lowerUserMessage.includes('difference')) {
+    replies.push("Show me a comparison", "What are the pros and cons?", "Which is better?");
+  }
+  
+  if (lowerUserMessage.includes('create') || lowerUserMessage.includes('generate')) {
+    replies.push("Make another one", "Try a different style", "Show me variations");
+  }
+  
+  if (lowerBotResponse.includes('image') || lowerBotResponse.includes('chart')) {
+    replies.push("Show me another example", "Make it interactive", "Explain what I see");
+  }
+  
+  // Sentiment-based replies
+  if (sentiment === 'confused') {
+    replies.push("Break it down step by step", "Use simpler terms", "Give me an analogy");
+  } else if (sentiment === 'frustrated') {
+    replies.push("Let's try a different approach", "Show me alternatives", "Contact support");
+  } else if (sentiment === 'positive') {
+    replies.push("Tell me more", "What else can you do?", "Show me related topics");
+  }
+  
+  // General helpful replies
+  replies.push("That's helpful!", "Can you elaborate?", "What's next?");
+  
+  // Return unique replies, limited to 4 for better UX
+  return [...new Set(replies)].slice(0, 4);
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Get all conversations (for demo purposes, not user-specific)
@@ -54,11 +127,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Message content is required" });
       }
 
-      // Save user message
+      // Analyze sentiment of user message
+      const sentiment = analyzeSentiment(content);
+      
+      // Save user message with sentiment analysis
       const userMessage = await storage.createMessage({
         conversationId,
         content,
         role: "user",
+        sentiment: sentiment,
+        messageType: "text",
       });
 
       // Enhanced content analysis for different types of requests
@@ -132,7 +210,19 @@ User question: ${content}`
 
         let aiResponse = response.text || "I apologize, but I couldn't generate a response. Please try again.";
         
-        // Add notes for different content types
+        // Generate contextual quick replies
+        const quickReplies = generateQuickReplies(content, aiResponse, sentiment);
+        
+        // Add empathetic language based on sentiment
+        if (sentiment === 'frustrated') {
+          aiResponse = "I understand this might be frustrating. Let me help you with that. 😊\n\n" + aiResponse;
+        } else if (sentiment === 'confused') {
+          aiResponse = "I can see this might be confusing. Let me break it down for you. 🤔\n\n" + aiResponse;
+        } else if (sentiment === 'positive') {
+          aiResponse = "Great question! I'm happy to help. ✨\n\n" + aiResponse;
+        }
+        
+        // Add notes for different content types with emojis
         if (shouldGenerateImage || shouldAutoGenerateImage) {
           aiResponse += "\n\n🎨 Generating a relevant image...";
         }
@@ -143,11 +233,19 @@ User question: ${content}`
           aiResponse += "\n\n📊 Creating data visualization...";
         }
 
-        // Save AI response
+        // Save AI response with enhanced features
         const botMessage = await storage.createMessage({
           conversationId,
           content: aiResponse,
           role: "assistant",
+          quickReplies: quickReplies.length > 0 ? JSON.stringify(quickReplies) : null,
+          sentiment: "neutral",
+          messageType: "text",
+          metadata: JSON.stringify({ 
+            hasVisuals: shouldGenerateImage || shouldAutoGenerateImage || shouldGenerateChart,
+            isSearchResponse: isSearchQuery,
+            userSentiment: sentiment
+          })
         });
 
         // Generate chart/visualization if requested

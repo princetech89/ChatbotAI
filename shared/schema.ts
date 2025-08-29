@@ -14,6 +14,9 @@ export const conversations = pgTable("conversations", {
   title: text("title").notNull(),
   userId: varchar("user_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
+  context: text("context"), // JSON for conversation context and memory
+  persona: varchar("persona").default("friendly"), // Bot personality
+  preferences: text("preferences"), // JSON for user preferences
 });
 
 export const messages = pgTable("messages", {
@@ -22,6 +25,10 @@ export const messages = pgTable("messages", {
   content: text("content").notNull(),
   role: varchar("role", { enum: ["user", "assistant"] }).notNull(),
   timestamp: timestamp("timestamp").defaultNow(),
+  quickReplies: text("quick_replies"), // JSON array of suggested quick replies
+  messageType: varchar("message_type", { enum: ["text", "image", "chart", "system"] }).default("text"),
+  sentiment: varchar("sentiment", { enum: ["positive", "negative", "neutral", "confused", "frustrated"] }),
+  metadata: text("metadata"), // JSON for additional data
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -32,12 +39,19 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertConversationSchema = createInsertSchema(conversations).pick({
   title: true,
   userId: true,
+  context: true,
+  persona: true,
+  preferences: true,
 });
 
 export const insertMessageSchema = createInsertSchema(messages).pick({
   conversationId: true,
   content: true,
   role: true,
+  quickReplies: true,
+  messageType: true,
+  sentiment: true,
+  metadata: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;

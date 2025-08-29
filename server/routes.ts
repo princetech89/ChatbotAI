@@ -66,13 +66,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
                                  content.toLowerCase().includes('create image') ||
                                  content.toLowerCase().includes('draw') ||
                                  content.toLowerCase().includes('picture of') ||
-                                 content.toLowerCase().includes('show me');
+                                 content.toLowerCase().includes('show me') ||
+                                 content.toLowerCase().includes('image of');
 
-      // Check for search queries
+      // Check for search queries that should also generate visual content
       const isSearchQuery = content.toLowerCase().includes('search for') ||
                            content.toLowerCase().includes('find information') ||
                            content.toLowerCase().includes('look up') ||
                            content.toLowerCase().includes('research') ||
+                           content.toLowerCase().includes('tell me about') ||
+                           content.toLowerCase().includes('explain') ||
                            content.includes('?') && (content.toLowerCase().includes('what') || 
                                                    content.toLowerCase().includes('how') ||
                                                    content.toLowerCase().includes('when') ||
@@ -86,7 +89,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
                                  content.toLowerCase().includes('data') ||
                                  content.toLowerCase().includes('statistics') ||
                                  content.toLowerCase().includes('compare') ||
-                                 content.toLowerCase().includes('trend');
+                                 content.toLowerCase().includes('trend') ||
+                                 content.toLowerCase().includes('analysis') ||
+                                 (isSearchQuery && (content.toLowerCase().includes('market') ||
+                                                   content.toLowerCase().includes('growth') ||
+                                                   content.toLowerCase().includes('economy') ||
+                                                   content.toLowerCase().includes('population') ||
+                                                   content.toLowerCase().includes('sales')));
+
+      // Auto-generate images for search topics that would benefit from visuals
+      const shouldAutoGenerateImage = isSearchQuery && !shouldGenerateChart && (
+        content.toLowerCase().includes('city') ||
+        content.toLowerCase().includes('country') ||
+        content.toLowerCase().includes('animal') ||
+        content.toLowerCase().includes('plant') ||
+        content.toLowerCase().includes('building') ||
+        content.toLowerCase().includes('architecture') ||
+        content.toLowerCase().includes('landscape') ||
+        content.toLowerCase().includes('technology') ||
+        content.toLowerCase().includes('space') ||
+        content.toLowerCase().includes('ocean')
+      );
 
       // Get AI response
       try {
@@ -110,14 +133,14 @@ User question: ${content}`
         let aiResponse = response.text || "I apologize, but I couldn't generate a response. Please try again.";
         
         // Add notes for different content types
-        if (shouldGenerateImage) {
-          aiResponse += "\n\n🎨 Generating an image based on your request...";
+        if (shouldGenerateImage || shouldAutoGenerateImage) {
+          aiResponse += "\n\n🎨 Generating a relevant image...";
         }
         if (isSearchQuery) {
-          aiResponse += "\n\n🔍 Searching for relevant information...";
+          aiResponse += "\n\n🔍 Researching and gathering information...";
         }
         if (shouldGenerateChart) {
-          aiResponse += "\n\n📊 Generating data visualization...";
+          aiResponse += "\n\n📊 Creating data visualization...";
         }
 
         // Save AI response
@@ -131,7 +154,19 @@ User question: ${content}`
         let chartGenerated = false;
         if (shouldGenerateChart) {
           try {
-            // Generate chart data based on user request
+            // Generate intelligent chart data based on the specific search query
+            const chartPrompt = `Based on this search query: "${content}"
+            
+            Create realistic, relevant chart data that would help visualize information about this topic. 
+            Consider:
+            - What type of chart best represents this data (bar for comparisons, line for trends, pie for parts of whole)
+            - What realistic data points would be educational and interesting
+            - Make the data current and accurate to 2024/2025 trends
+            - Include 6-12 meaningful data points
+            - Create a descriptive title and helpful description
+            
+            Generate the chart data as JSON.`;
+
             const chartResponse = await genai.models.generateContent({
               model: "gemini-2.5-pro",
               config: {
@@ -156,7 +191,7 @@ User question: ${content}`
                   }
                 }
               },
-              contents: `Generate sample chart data for this request: "${content}". Create realistic data that would be relevant to this query. Include 5-10 data points.`
+              contents: chartPrompt
             });
 
             if (chartResponse.text) {
@@ -174,12 +209,18 @@ User question: ${content}`
           }
         }
 
-        // Generate image if requested
+        // Generate image if requested or for visual search topics
         let imageGenerated = false;
-        if (shouldGenerateImage) {
+        if (shouldGenerateImage || shouldAutoGenerateImage) {
           try {
-            // Extract image description from user message
-            const imagePrompt = content.replace(/generate image|create image|draw|picture of|show me/gi, '').trim();
+            // Create image prompt based on the search topic or explicit request
+            let imagePrompt;
+            if (shouldGenerateImage) {
+              imagePrompt = content.replace(/generate image|create image|draw|picture of|show me|image of/gi, '').trim();
+            } else {
+              // For auto-generated images, create a relevant visual prompt
+              imagePrompt = `A high-quality, detailed illustration or photograph related to: ${content}`;
+            }
             const enhancedPrompt = imagePrompt || content;
             
             // Note: only this gemini model supports image generation

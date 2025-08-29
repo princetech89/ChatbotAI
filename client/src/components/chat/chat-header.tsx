@@ -1,5 +1,6 @@
-import { Trash2, Settings, Maximize2, Minimize2 } from "lucide-react";
+import { Trash2, Settings, Maximize2, Minimize2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 interface ChatHeaderProps {
   onClearHistory: () => void;
@@ -12,6 +13,15 @@ export function ChatHeader({ onClearHistory, onSettings, isFullscreen, onToggleF
   return (
     <header className="glass-morph border-b border-border px-4 py-4 flex items-center justify-between shadow-sm corner-accent">
       <div className="flex items-center space-x-3">
+        <Link href="/" data-testid="button-back-home">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 mr-2 text-muted-foreground hover:text-foreground hover:bg-accent morph-button"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
         <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center breathe morph-button">
           <i className="fas fa-robot text-primary-foreground text-lg"></i>
         </div>

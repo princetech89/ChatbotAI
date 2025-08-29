@@ -109,6 +109,11 @@ export function LandingPage() {
               size="lg"
               className="group px-8 py-4 text-lg font-semibold glass-morph hover:bg-accent/50 transform hover:scale-105 transition-all duration-300"
               data-testid="button-learn-more"
+              onClick={() => {
+                document.querySelector('.feature-card')?.scrollIntoView({ 
+                  behavior: 'smooth' 
+                });
+              }}
             >
               <Sparkles className="w-5 h-5 mr-2 group-hover:animate-spin" />
               Learn More

@@ -46,11 +46,18 @@ function getCategoryLabel(category: string): string {
 export function MessageBubble({ message, isLatest, category }: MessageBubbleProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const isUser = message.role === "user";
   const detectedCategory = category || (isUser ? detectCategory(message.content) : 'general');
   const isLongMessage = message.content.length > 300;
   const shouldTruncate = isLongMessage && !isExpanded;
-  const displayContent = shouldTruncate ? message.content.substring(0, 300) + "..." : message.content;
+  
+  // Check if message contains an image
+  const imageMatch = message.content.match(/!\[.*?\]\((data:image\/[^)]+)\)/);
+  const hasImage = !!imageMatch;
+  const imageUrl = imageMatch?.[1];
+  const textContent = hasImage ? message.content.replace(/!\[.*?\]\([^)]+\)/, '').trim() : message.content;
+  const displayContent = shouldTruncate ? textContent.substring(0, 300) + "..." : textContent;
   
   const timestamp = message.timestamp ? new Date(message.timestamp).toLocaleTimeString([], { 
     hour: 'numeric', 
@@ -83,9 +90,35 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
           "rounded-2xl px-4 py-3 relative group",
           isUser ? "message-bubble-user rounded-br-md" : "message-bubble-bot rounded-bl-md"
         )}>
-          <div className="text-sm leading-relaxed whitespace-pre-wrap" data-testid={`text-message-${message.id}`}>
-            {displayContent}
-          </div>
+          {/* Text Content */}
+          {textContent && (
+            <div className="text-sm leading-relaxed whitespace-pre-wrap" data-testid={`text-message-${message.id}`}>
+              {displayContent}
+            </div>
+          )}
+          
+          {/* Generated Image */}
+          {hasImage && imageUrl && (
+            <div className="mt-3">
+              <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
+                <img
+                  src={imageUrl}
+                  alt="Generated Image"
+                  className={cn(
+                    "w-full h-auto transition-opacity duration-300",
+                    imageLoaded ? "opacity-100" : "opacity-0"
+                  )}
+                  onLoad={() => setImageLoaded(true)}
+                  data-testid={`image-${message.id}`}
+                />
+                {!imageLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse">
+                    <div className="text-sm text-muted-foreground">Loading image...</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           
           {/* Expand/Collapse for long messages */}
           {isLongMessage && (

@@ -61,6 +61,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: "user",
       });
 
+      // Check if user is requesting image generation
+      const shouldGenerateImage = content.toLowerCase().includes('generate image') || 
+                                 content.toLowerCase().includes('create image') ||
+                                 content.toLowerCase().includes('draw') ||
+                                 content.toLowerCase().includes('picture of') ||
+                                 content.toLowerCase().includes('show me');
+
       // Get AI response
       try {
         // Note that the newest Gemini model series is "gemini-2.5-flash" or gemini-2.5-pro"
@@ -70,7 +77,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             {
               role: "user",
               parts: [{ 
-                text: `You are a helpful AI assistant. Provide clear, accurate, and engaging responses to user questions. Be conversational but informative.
+                text: `You are a helpful AI assistant with advanced capabilities. Provide clear, accurate, and engaging responses to user questions. Be conversational but informative.
+
+${shouldGenerateImage ? 'The user has requested visual content. Along with your text response, I will generate an image related to their request.' : ''}
 
 User question: ${content}` 
               }]
@@ -78,7 +87,12 @@ User question: ${content}`
           ],
         });
 
-        const aiResponse = response.text || "I apologize, but I couldn't generate a response. Please try again.";
+        let aiResponse = response.text || "I apologize, but I couldn't generate a response. Please try again.";
+        
+        // If image generation is requested, add a note about it
+        if (shouldGenerateImage) {
+          aiResponse += "\n\n🎨 Generating an image based on your request...";
+        }
 
         // Save AI response
         const botMessage = await storage.createMessage({
@@ -87,9 +101,52 @@ User question: ${content}`
           role: "assistant",
         });
 
+        // Generate image if requested
+        let imageGenerated = false;
+        if (shouldGenerateImage) {
+          try {
+            // Extract image description from user message
+            const imagePrompt = content.replace(/generate image|create image|draw|picture of|show me/gi, '').trim();
+            const enhancedPrompt = imagePrompt || content;
+            
+            // Note: only this gemini model supports image generation
+            const imageResponse = await genai.models.generateContent({
+              model: "gemini-2.0-flash-preview-image-generation",
+              contents: [{ role: "user", parts: [{ text: `Create a high-quality, detailed image: ${enhancedPrompt}` }] }],
+              config: {
+                responseModalities: ["TEXT", "IMAGE"],
+              },
+            });
+
+            if (imageResponse.candidates && imageResponse.candidates[0]?.content?.parts) {
+              for (const part of imageResponse.candidates[0].content.parts) {
+                if (part.inlineData && part.inlineData.data) {
+                  // Save image message
+                  const imageMessage = await storage.createMessage({
+                    conversationId,
+                    content: `![Generated Image](data:image/jpeg;base64,${part.inlineData.data})`,
+                    role: "assistant",
+                  });
+                  imageGenerated = true;
+                  break;
+                }
+              }
+            }
+          } catch (imageError) {
+            console.error('Image generation failed:', imageError);
+            // Update the bot message to reflect image generation failure
+            await storage.createMessage({
+              conversationId,
+              content: "I apologize, but I wasn't able to generate an image for your request. However, I can still help you with detailed descriptions and information!",
+              role: "assistant",
+            });
+          }
+        }
+
         res.json({
           userMessage,
           botMessage,
+          imageGenerated,
         });
 
       } catch (aiError) {

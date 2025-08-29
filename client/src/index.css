@@ -167,10 +167,30 @@
   .chat-container {
     height: calc(100vh - 140px);
     transition: all 0.3s ease;
+    overflow-y: auto !important;
+    scroll-behavior: smooth;
   }
   
   .chat-container.fullscreen {
     height: calc(100vh - 80px);
+  }
+  
+  .chat-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .chat-container::-webkit-scrollbar-track {
+    background: var(--muted);
+    border-radius: 3px;
+  }
+  
+  .chat-container::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 3px;
+  }
+  
+  .chat-container::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
   }
   
   .fullscreen-mode {
@@ -215,6 +235,45 @@
   
   .expandable-section:hover {
     background-color: var(--accent);
+  }
+  
+  .text-prediction {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  
+  .prediction-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .prediction-item:hover,
+  .prediction-item.selected {
+    background-color: var(--accent);
+  }
+  
+  .image-generation-card {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 8px 0;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .image-generation-card.generating {
+    border-color: var(--primary);
+    background-color: var(--primary/10);
   }
   
   @media (max-width: 768px) {

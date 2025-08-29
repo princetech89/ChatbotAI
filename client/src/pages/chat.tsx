@@ -132,12 +132,11 @@ export default function ChatPage() {
         onToggleFullscreen={handleToggleFullscreen}
       />
 
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden">
         <div 
           ref={chatContainerRef}
-          className={cn("chat-container px-4 py-6", isFullscreen && "fullscreen")} 
+          className={cn("chat-container px-4 py-6 flex-1", isFullscreen && "fullscreen")} 
           data-testid="chat-container"
-          style={{ overflowY: 'auto', scrollBehavior: 'smooth' }}
         >
           
           {/* Welcome Message */}
@@ -154,7 +153,7 @@ export default function ChatPage() {
           )}
 
           {/* Messages */}
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 overflow-y-auto">
             {messages.map((message: Message, index: number) => (
               <MessageBubble 
                 key={message.id} 

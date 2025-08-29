@@ -165,14 +165,17 @@
   }
   
   .chat-container {
-    height: calc(100vh - 140px);
+    height: calc(100vh - 200px);
+    min-height: 400px;
     transition: all 0.3s ease;
     overflow-y: auto !important;
     scroll-behavior: smooth;
+    display: flex;
+    flex-direction: column;
   }
   
   .chat-container.fullscreen {
-    height: calc(100vh - 80px);
+    height: calc(100vh - 120px);
   }
   
   .chat-container::-webkit-scrollbar {
@@ -280,11 +283,12 @@
   
   @media (max-width: 768px) {
     .chat-container {
-      height: calc(100vh - 120px);
+      height: calc(100vh - 180px);
+      min-height: 300px;
     }
     
     .chat-container.fullscreen {
-      height: calc(100vh - 60px);
+      height: calc(100vh - 100px);
     }
   }
 }

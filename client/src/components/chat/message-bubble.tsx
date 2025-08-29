@@ -76,7 +76,7 @@ export function MessageBubble({ message, isLatest, category }: MessageBubbleProp
 
   return (
     <div className={cn("flex", isUser ? "justify-end" : "justify-start", isLatest && "fade-in")}>
-      <div className={cn("max-w-xs md:max-w-md", !isUser && "lg:max-w-3xl w-full")}>
+      <div className={cn("max-w-xs md:max-w-2xl", !isUser && "lg:max-w-4xl w-full")}>
         {/* Category Badge for user messages */}
         {isUser && (
           <div className="mb-1 flex justify-end">

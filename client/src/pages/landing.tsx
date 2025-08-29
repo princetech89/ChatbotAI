@@ -72,26 +72,20 @@ export function LandingPage() {
           mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}>
           
-          {/* Logo/Icon */}
-          <div className="relative mb-8">
-            <div className="w-32 h-32 mx-auto bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center shadow-2xl animate-pulse-glow">
-              <span className="text-white font-bold text-5xl animate-bounce-subtle">PC</span>
+          {/* Logo with Name */}
+          <div className="relative mb-12">
+            <div className="w-40 h-20 mx-auto bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse-glow">
+              <span className="text-white font-bold text-lg animate-bounce-subtle">Prince Chourasiya</span>
             </div>
-            <div className="absolute -inset-6 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-full blur-xl animate-spin-slow" />
+            <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-xl animate-spin-slow" />
           </div>
 
-          {/* Developer Name */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent animate-gradient-x">
-                Prince Chourasiya
-              </h1>
-              <div className="h-1 w-32 mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-full animate-pulse"></div>
-            </div>
-            <h2 className="text-2xl md:text-3xl font-semibold text-muted-foreground animate-fade-in-up">
+          {/* Developer Title */}
+          <div className="space-y-8">
+            <h2 className="text-3xl md:text-4xl font-semibold text-muted-foreground animate-fade-in-up">
               Full Stack Developer & AI Enthusiast
             </h2>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed animate-fade-in-up-delay">
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in-up-delay">
               Crafting intelligent conversations with cutting-edge AI technology
             </p>
           </div>
@@ -180,8 +174,8 @@ export function LandingPage() {
               className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-primary transition-colors duration-300"
               data-testid="website-link"
             >
-              <div className="w-4 h-4 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xs">PC</span>
+              <div className="w-6 h-4 bg-gradient-to-br from-primary to-purple-600 rounded flex items-center justify-center">
+                <span className="text-white font-bold text-xs">Prince Chourasiya</span>
               </div>
               <span>princechourasiya.dev</span>
             </a>

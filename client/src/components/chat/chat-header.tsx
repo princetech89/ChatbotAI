@@ -22,8 +22,8 @@ export function ChatHeader({ onClearHistory, onSettings, isFullscreen, onToggleF
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center breathe morph-button">
-          <span className="text-primary-foreground font-bold text-lg">PC</span>
+        <div className="w-12 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center breathe morph-button">
+          <span className="text-primary-foreground font-bold text-xs">Prince Chourasiya</span>
         </div>
         <div>
           <h1 className="text-lg font-semibold gradient-text">Prince Chourasiya</h1>

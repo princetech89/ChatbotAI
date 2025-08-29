@@ -901,6 +901,27 @@
     }
   }
 
+  .animate-fade-in-up {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.5s forwards;
+  }
+
+  .animate-fade-in-up-delay {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out 0.7s forwards;
+  }
+
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   /* Enhanced markdown styling */
   .markdown-h2 {
     font-size: 1.3rem;

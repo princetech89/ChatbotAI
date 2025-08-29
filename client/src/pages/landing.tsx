@@ -73,24 +73,26 @@ export function LandingPage() {
         }`}>
           
           {/* Logo/Icon */}
-          <div className="relative">
-            <div className="w-24 h-24 mx-auto bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center shadow-2xl animate-pulse-glow">
-              <span className="text-white font-bold text-4xl animate-bounce-subtle">PC</span>
+          <div className="relative mb-8">
+            <div className="w-32 h-32 mx-auto bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center shadow-2xl animate-pulse-glow">
+              <span className="text-white font-bold text-5xl animate-bounce-subtle">PC</span>
             </div>
-            <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-full blur-xl animate-spin-slow" />
+            <div className="absolute -inset-6 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-full blur-xl animate-spin-slow" />
           </div>
 
-          {/* Title */}
-          <div className="space-y-4">
-            <h1 className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent animate-gradient-x">
-              Prince Chourasiya
-            </h1>
-            <h2 className="text-3xl md:text-4xl font-semibold text-muted-foreground">
-              AI Assistant
+          {/* Developer Name */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-foreground via-primary to-purple-600 bg-clip-text text-transparent animate-gradient-x">
+                Prince Chourasiya
+              </h1>
+              <div className="h-1 w-32 mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-full animate-pulse"></div>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-semibold text-muted-foreground animate-fade-in-up">
+              Full Stack Developer & AI Enthusiast
             </h2>
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Experience the future of conversations with advanced AI technology, 
-              image analysis, and intelligent insights
+            <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed animate-fade-in-up-delay">
+              Crafting intelligent conversations with cutting-edge AI technology
             </p>
           </div>
 
@@ -124,57 +126,40 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* Feature Showcase */}
-        <div className={`mt-20 max-w-4xl w-full transform transition-all duration-1000 delay-500 ${
+        {/* Quick Features */}
+        <div className={`mt-16 max-w-2xl w-full transform transition-all duration-1000 delay-500 ${
           mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         }`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {features.slice(0, 4).map((feature, index) => (
               <div
                 key={index}
-                className={`feature-card p-6 rounded-2xl glass-morph border-2 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+                className={`feature-card p-4 rounded-xl glass-morph border transition-all duration-500 hover:scale-105 ${
                   currentFeature === index 
-                    ? 'border-primary shadow-primary/25 neon-glow' 
-                    : 'border-border/50 hover:border-primary/50'
+                    ? 'border-primary shadow-primary/25' 
+                    : 'border-border/30 hover:border-primary/50'
                 }`}
                 style={{
-                  animationDelay: `${index * 200}ms`
+                  animationDelay: `${index * 150}ms`
                 }}
                 data-testid={`feature-card-${index}`}
               >
-                <div className={`inline-flex p-3 rounded-full mb-4 transition-all duration-300 ${
-                  currentFeature === index 
-                    ? 'bg-gradient-to-r from-primary to-purple-600 text-white' 
-                    : 'bg-accent/50 text-accent-foreground'
-                }`}>
-                  {feature.icon}
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg transition-all duration-300 ${
+                    currentFeature === index 
+                      ? 'bg-gradient-to-r from-primary to-purple-600 text-white' 
+                      : 'bg-accent/50 text-accent-foreground'
+                  }`}>
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      {feature.title}
+                    </h3>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Stats Section */}
-        <div className={`mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center transform transition-all duration-1000 delay-700 ${
-          mounted ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-        }`}>
-          <div className="space-y-2">
-            <div className="text-3xl font-bold gradient-text">100k+</div>
-            <div className="text-muted-foreground">Messages Processed</div>
-          </div>
-          <div className="space-y-2">
-            <div className="text-3xl font-bold gradient-text">99.9%</div>
-            <div className="text-muted-foreground">Uptime</div>
-          </div>
-          <div className="space-y-2">
-            <div className="text-3xl font-bold gradient-text">50ms</div>
-            <div className="text-muted-foreground">Average Response</div>
           </div>
         </div>
       </div>

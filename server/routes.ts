@@ -225,8 +225,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           aiResponse = "Great question! I'm happy to help. ✨\n\n" + aiResponse;
         }
         
-        // Only add visual content notes if explicitly requested
-        // Remove automatic visual indicators for faster, cleaner responses
+        // Add visual content generation back
+        if (shouldGenerateChart) {
+          aiResponse += "\n\n📊 Creating data visualization...";
+        }
+        if (shouldGenerateImage || shouldAutoGenerateImage) {
+          aiResponse += "\n\n🎨 Generating relevant image...";
+        }
 
         // Save AI response with enhanced features
         const botMessage = await storage.createMessage({
@@ -246,8 +251,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Return response immediately for better user experience
         res.json({ userMessage, botMessage });
 
-        // Skip visual content generation for faster responses
-        // (Visual content can be requested separately if needed)
+        // Generate visual content asynchronously after sending response
+        if (shouldGenerateChart || shouldGenerateImage || shouldAutoGenerateImage) {
+          setImmediate(async () => {
+            try {
+              // Generate chart if requested
+              if (shouldGenerateChart) {
+                try {
+                  const chartPrompt = `Create chart data for: "${content}". Return JSON with chartType (bar/line/pie), title, data array with label/value pairs, and description. 6-8 data points max.`;
+                  
+                  const chartResponse = await genai.models.generateContent({
+                    model: "gemini-2.5-flash",
+                    config: {
+                      responseMimeType: "application/json",
+                      responseSchema: {
+                        type: "object",
+                        properties: {
+                          chartType: { type: "string", enum: ["bar", "line", "pie", "area", "scatter"] },
+                          title: { type: "string" },
+                          data: {
+                            type: "array",
+                            items: {
+                              type: "object",
+                              properties: {
+                                label: { type: "string" },
+                                value: { type: "number" },
+                                category: { type: "string" }
+                              }
+                            }
+                          },
+                          description: { type: "string" }
+                        }
+                      }
+                    },
+                    contents: chartPrompt,
+                  });
+
+                  if (chartResponse.text) {
+                    const chartData = JSON.parse(chartResponse.text);
+                    await storage.createMessage({
+                      conversationId,
+                      content: `CHART_DATA:${JSON.stringify(chartData)}`,
+                      role: "assistant",
+                    });
+                  }
+                } catch (chartError) {
+                  console.error('Chart generation error:', chartError);
+                  // Create fallback chart
+                  const fallbackChart = {
+                    chartType: "bar",
+                    title: `Data Overview: ${content.substring(0, 50)}`,
+                    data: [
+                      { label: "Item A", value: 35, category: "data" },
+                      { label: "Item B", value: 28, category: "data" },
+                      { label: "Item C", value: 42, category: "data" },
+                      { label: "Item D", value: 19, category: "data" },
+                      { label: "Item E", value: 31, category: "data" }
+                    ],
+                    description: "Sample data visualization"
+                  };
+                  
+                  await storage.createMessage({
+                    conversationId,
+                    content: `CHART_DATA:${JSON.stringify(fallbackChart)}`,
+                    role: "assistant",
+                  });
+                }
+              }
+
+              // Generate image if requested
+              if (shouldGenerateImage || shouldAutoGenerateImage) {
+                try {
+                  let imagePrompt = shouldGenerateImage 
+                    ? content.replace(/generate image|create image|draw|picture of|show me|image of/gi, '').trim()
+                    : `Professional illustration: ${content.substring(0, 100)}`;
+                  
+                  const imageResponse = await genai.models.generateContent({
+                    model: "gemini-2.0-flash-exp",
+                    contents: [{ role: "user", parts: [{ text: `Create a detailed image: ${imagePrompt || content}` }] }],
+                    config: {
+                      responseModalities: ["TEXT", "IMAGE"],
+                    },
+                  });
+
+                  if (imageResponse.candidates?.[0]?.content?.parts) {
+                    for (const part of imageResponse.candidates[0].content.parts) {
+                      if (part.inlineData?.data) {
+                        await storage.createMessage({
+                          conversationId,
+                          content: `![Generated Image](data:image/jpeg;base64,${part.inlineData.data})`,
+                          role: "assistant",
+                        });
+                        break;
+                      }
+                    }
+                  }
+                } catch (imageError) {
+                  console.error('Image generation error:', imageError);
+                }
+              }
+            } catch (error) {
+              console.error('Visual content generation error:', error);
+            }
+          });
+        }
 
       } catch (error) {
         console.error('AI response error:', error);

@@ -184,7 +184,17 @@ export default function ChatPage() {
             ))}
 
             {/* Typing Indicator */}
-            {isTyping && <TypingIndicator />}
+            {isTyping && (
+          <div className="flex justify-start mb-4 message-entrance">
+            <div className="typing-indicator bg-muted text-muted-foreground px-4 py-3 rounded-2xl rounded-bl-md max-w-[200px] breathe">
+              <div className="typing-dots">
+                <div className="bounce-dot"></div>
+                <div className="bounce-dot"></div>
+                <div className="bounce-dot"></div>
+              </div>
+            </div>
+          </div>
+        )}
           </div>
         </div>
       </main>

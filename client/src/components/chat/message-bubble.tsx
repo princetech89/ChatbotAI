@@ -183,7 +183,7 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
     <div className={cn(
       "flex transition-all duration-300 ease-out", 
       isUser ? "justify-end" : "justify-start", 
-      isLatest && "animate-in slide-in-from-bottom-2 fade-in duration-500"
+      isLatest && "message-entrance"
     )}>
       <div className={cn("max-w-xs md:max-w-2xl", !isUser && "lg:max-w-4xl w-full")}>
         {/* Category Badge for user messages */}
@@ -197,8 +197,8 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
         
         <div 
           className={cn(
-            "rounded-2xl px-4 py-3 relative group transition-all duration-300 ease-out transform",
-            "hover:scale-[1.02] hover:shadow-lg",
+            "rounded-2xl px-4 py-3 relative group message-bubble interactive-hover",
+            "hover:scale-[1.02] hover:shadow-lg breathe",
             isUser ? "message-bubble-user rounded-br-md hover:shadow-blue-500/20" : "message-bubble-bot rounded-bl-md hover:shadow-gray-500/20",
             isHovered && "scale-[1.01]"
           )}

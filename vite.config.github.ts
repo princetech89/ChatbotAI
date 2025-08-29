@@ -11,8 +11,13 @@ export default defineConfig({
     outDir: '../docs', // GitHub Pages can serve from docs folder
     sourcemap: false,
     rollupOptions: {
-      input: path.resolve(__dirname, 'client/index.github.html'),
+      input: {
+        main: path.resolve(__dirname, 'client/index.github.html')
+      },
       output: {
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
         manualChunks: {
           vendor: ['react', 'react-dom'],
         }

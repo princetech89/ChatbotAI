@@ -5,7 +5,7 @@ import path from 'path'
 // GitHub Pages specific Vite configuration
 export default defineConfig({
   plugins: [react()],
-  base: '/your-repo-name/', // Replace with your GitHub repository name
+  base: '/ChatbotAI/', // Your GitHub repository name
   root: 'client',
   build: {
     outDir: '../docs', // GitHub Pages can serve from docs folder

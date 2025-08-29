@@ -40,25 +40,42 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-500/5 to-emerald-500/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(99,102,241,0.1),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(147,51,234,0.1),transparent_50%)]" />
+      {/* New Background Design */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        {/* Geometric Pattern Overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(99,102,241,0.1)_0%,transparent_50%,rgba(147,51,234,0.1)_100%)]" />
+        
+        {/* Dynamic Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.03)_1px,transparent_1px)] bg-[size:100px_100px] animate-pulse" />
+        
+        {/* Floating Orbs */}
+        <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-purple-600/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '0s' }} />
+        <div className="absolute top-60 right-32 w-24 h-24 bg-gradient-to-r from-emerald-400/20 to-teal-600/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-40 left-40 w-20 h-20 bg-gradient-to-r from-pink-400/20 to-rose-600/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '4s' }} />
+        <div className="absolute bottom-20 right-20 w-28 h-28 bg-gradient-to-r from-orange-400/20 to-yellow-600/20 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
+        
+        {/* Diagonal Lines */}
+        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_0%,rgba(99,102,241,0.05)_25%,transparent_50%,rgba(147,51,234,0.05)_75%,transparent_100%)] bg-[length:200px_200px] animate-pulse" />
       </div>
 
-      {/* Floating Particles */}
+      {/* Animated Geometric Shapes */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {/* Hexagons */}
+        <div className="absolute top-32 left-1/4 w-6 h-6 border-2 border-primary/30 rotate-45 animate-spin-slow" />
+        <div className="absolute bottom-32 right-1/4 w-4 h-4 border-2 border-purple-500/30 rotate-12 animate-spin-slow" style={{ animationDelay: '3s' }} />
+        <div className="absolute top-1/2 left-16 w-5 h-5 border-2 border-emerald-500/30 rotate-45 animate-spin-slow" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-1/4 right-16 w-3 h-3 border-2 border-pink-500/30 rotate-12 animate-spin-slow" style={{ animationDelay: '2.5s' }} />
+        
+        {/* Floating Dots */}
+        {[...Array(15)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-gradient-to-r from-primary/20 to-purple-500/20 animate-float"
+            className="absolute w-2 h-2 bg-gradient-to-r from-primary/40 to-purple-500/40 rounded-full animate-float"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              width: `${4 + Math.random() * 8}px`,
-              height: `${4 + Math.random() * 8}px`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`
+              left: `${10 + Math.random() * 80}%`,
+              top: `${10 + Math.random() * 80}%`,
+              animationDelay: `${Math.random() * 6}s`,
+              animationDuration: `${4 + Math.random() * 3}s`
             }}
           />
         ))}

@@ -122,40 +122,23 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
   ];
 
   return (
-    <footer className="bg-background border-t border-border px-4 py-4">
+    <footer className="bg-background border-t border-border px-4 py-6">
       <div className="max-w-4xl mx-auto">
-        <form onSubmit={handleSubmit} className="flex items-end space-x-3">
+        <form onSubmit={handleSubmit} className="flex items-center gap-3">
           
           {/* Message Input */}
-          <div className="flex-1 relative">
+          <div className="flex-1">
             <Textarea
               ref={inputRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Start typing for smart predictions... I'll analyze and categorize your query automatically"
-              className="w-full px-4 py-3 pr-12 bg-input border border-border rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 max-h-32 min-h-[48px]"
+              placeholder="Type your message..."
+              className="w-full px-4 py-3 bg-input border border-border rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 max-h-32 min-h-[48px]"
               rows={1}
               disabled={disabled}
               data-testid="textarea-message"
             />
-            
-            {/* Text Predictions */}
-            {showSuggestions && (
-              <div className="text-prediction">
-                {suggestions.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    className={cn("prediction-item", index === selectedSuggestion && "selected")}
-                    onClick={() => selectSuggestion(suggestion)}
-                    data-testid={`prediction-${index}`}
-                  >
-                    <Sparkles className="h-3 w-3 inline mr-2 text-primary" />
-                    {suggestion}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Voice Assistant */}
@@ -180,33 +163,6 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
             <Send className="h-4 w-4" />
           </Button>
         </form>
-
-        {/* Smart Quick Actions */}
-        <div className="mt-4">
-          <p className="text-xs text-muted-foreground text-center mb-3">
-            Try these smart prompts - I'll automatically categorize and provide detailed responses:
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {quickPrompts.map((prompt, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                className="text-xs text-left justify-start px-3 py-2 h-auto hover:bg-accent transition-colors"
-                onClick={() => insertQuickPrompt(prompt.text)}
-                data-testid={`button-quick-${prompt.category}`}
-              >
-                <prompt.icon className="h-3 w-3 mr-2 flex-shrink-0" />
-                <span className="truncate">{prompt.text}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Enhanced Disclaimer */}
-        <p className="text-xs text-muted-foreground text-center mt-3">
-          🚀 Smart AI with auto-complete • 🎨 Image generation • 📊 Category detection • 🔍 Enhanced search • 🖥️ Full-screen mode
-        </p>
       </div>
     </footer>
   );

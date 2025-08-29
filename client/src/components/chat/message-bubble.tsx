@@ -126,7 +126,7 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
         >
           {/* Text Content */}
           {textContent && (
-            <div className="text-sm leading-relaxed whitespace-pre-wrap" data-testid={`text-message-${message.id}`}>
+            <div className="text-base leading-relaxed whitespace-pre-wrap font-medium search-result-text" data-testid={`text-message-${message.id}`}>
               {displayContent}
             </div>
           )}

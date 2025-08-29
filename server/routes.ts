@@ -193,13 +193,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Use faster model and optimized prompt for quick responses
         console.log('Sending request to Gemini API for:', content);
+        // Enhanced prompting for better formatted responses
+        const isSearchOrInfoRequest = isSearchQuery || 
+          content.toLowerCase().includes('what is') || 
+          content.toLowerCase().includes('how to') || 
+          content.toLowerCase().includes('explain') || 
+          content.toLowerCase().includes('tell me about');
+
         const response = await genai.models.generateContent({
           model: "gemini-2.5-flash",
           contents: [
             {
               role: "user", 
               parts: [{ 
-                text: `You are a helpful AI assistant. Provide clear, accurate, and engaging responses.\n\nUser question: ${content}` 
+                text: isSearchOrInfoRequest ? 
+                  `You are a helpful AI assistant. For this informational query, provide a well-structured response with:
+                  - Clear headings when appropriate
+                  - Bullet points for lists
+                  - **Bold text** for key terms
+                  - Organized paragraphs for readability
+                  - Specific facts and details
+                  
+                  User question: ${content}` 
+                  :
+                  `You are a helpful AI assistant. Provide clear, accurate, and engaging responses.\n\nUser question: ${content}` 
               }]
             }
           ],

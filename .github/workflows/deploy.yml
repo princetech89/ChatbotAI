@@ -33,7 +33,7 @@ jobs:
       run: npm ci
       
     - name: Build for GitHub Pages
-      run: npm run build:github
+      run: npx vite build --config vite.config.github.ts
       
     - name: Setup Pages
       uses: actions/configure-pages@v4

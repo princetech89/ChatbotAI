@@ -6,6 +6,55 @@ import { Button } from "@/components/ui/button";
 import ChartVisualization from './chart-visualization';
 import { QuickReplies } from './quick-replies';
 
+// Enhanced markdown formatting function
+function formatMarkdownContent(text: string): string {
+  if (!text) return '';
+  
+  let formatted = text;
+  
+  // Headers
+  formatted = formatted.replace(/^## (.+)$/gm, '<h2 class="markdown-h2">$1</h2>');
+  formatted = formatted.replace(/^### (.+)$/gm, '<h3 class="markdown-h3">$1</h3>');
+  formatted = formatted.replace(/^#### (.+)$/gm, '<h4 class="markdown-h4">$1</h4>');
+  
+  // Bold text
+  formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong class="markdown-bold">$1</strong>');
+  
+  // Italic text  
+  formatted = formatted.replace(/\*([^*]+?)\*/g, '<em class="markdown-italic">$1</em>');
+  
+  // Code blocks
+  formatted = formatted.replace(/`([^`]+?)`/g, '<code class="markdown-code">$1</code>');
+  
+  // Bullet points (• or -)
+  formatted = formatted.replace(/^[•\-\*] (.+)$/gm, '<li class="markdown-li">$1</li>');
+  
+  // Numbered lists
+  formatted = formatted.replace(/^(\d+)\. (.+)$/gm, '<li class="markdown-numbered-li"><span class="list-number">$1.</span> $2</li>');
+  
+  // Blockquotes
+  formatted = formatted.replace(/^> (.+)$/gm, '<blockquote class="markdown-quote">$1</blockquote>');
+  
+  // Convert line breaks
+  formatted = formatted.replace(/\n\n+/g, '</p><p class="markdown-p">');
+  formatted = formatted.replace(/\n/g, '<br/>');
+  
+  // Wrap orphaned lists
+  formatted = formatted.replace(/(<li class="markdown-li">(?:(?!<\/li>).)*<\/li>)/gs, (match) => {
+    return `<ul class="markdown-ul">${match}</ul>`;
+  });
+  formatted = formatted.replace(/(<li class="markdown-numbered-li">(?:(?!<\/li>).)*<\/li>)/gs, (match) => {
+    return `<ol class="markdown-ol">${match}</ol>`;
+  });
+  
+  // Wrap content in paragraphs if it doesn't start with a block element
+  if (!formatted.match(/^<[h2-4]|^<ul|^<ol|^<blockquote/)) {
+    formatted = `<p class="markdown-p">${formatted}</p>`;
+  }
+  
+  return formatted;
+}
+
 interface MessageBubbleProps {
   message: Message;
   isLatest?: boolean;
@@ -126,9 +175,13 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
         >
           {/* Text Content */}
           {textContent && (
-            <div className="text-base leading-relaxed whitespace-pre-wrap font-medium search-result-text" data-testid={`text-message-${message.id}`}>
-              {displayContent}
-            </div>
+            <div 
+              className="text-base leading-relaxed font-medium search-result-text" 
+              data-testid={`text-message-${message.id}`}
+              dangerouslySetInnerHTML={{
+                __html: formatMarkdownContent(displayContent)
+              }}
+            />
           )}
           
           {/* Generated Image */}

@@ -207,16 +207,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
               role: "user", 
               parts: [{ 
                 text: isSearchOrInfoRequest ? 
-                  `You are a helpful AI assistant. For this informational query, provide a well-structured response with:
-                  - Clear headings when appropriate
-                  - Bullet points for lists
-                  - **Bold text** for key terms
-                  - Organized paragraphs for readability
-                  - Specific facts and details
-                  
-                  User question: ${content}` 
+                  `You are an expert AI assistant. For this query, provide a comprehensive, well-formatted response using proper markdown:
+
+## Format Guidelines:
+- Use ## for main headings
+- Use ### for sub-headings  
+- Use **bold** for key terms and important concepts
+- Use bullet points (•) for lists
+- Use numbered lists (1. 2. 3.) for steps/processes
+- Use > for important quotes or highlights
+- Organize information in clear sections
+- Include specific facts, numbers, and examples
+- Make responses scannable and easy to read
+
+User question: ${content}` 
                   :
-                  `You are a helpful AI assistant. Provide clear, accurate, and engaging responses.\n\nUser question: ${content}` 
+                  `You are a helpful AI assistant. Provide clear, accurate, and engaging responses with proper formatting when appropriate.\n\nUser question: ${content}` 
               }]
             }
           ],

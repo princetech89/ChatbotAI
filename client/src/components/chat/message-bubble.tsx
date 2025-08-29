@@ -1,10 +1,12 @@
 import { cn } from "@/lib/utils";
 import type { Message } from "@shared/schema";
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, Check, ThumbsUp, ThumbsDown, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ChartVisualization from './chart-visualization';
 import { QuickReplies } from './quick-replies';
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 // Enhanced markdown formatting function
 function formatMarkdownContent(text: string): string {
@@ -101,6 +103,11 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
   const [copied, setCopied] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [feedback, setFeedback] = useState<'helpful' | 'not-helpful' | null>(null);
+  const [rating, setRating] = useState<number>(0);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const { toast } = useToast();
+  
   const isUser = message.role === "user";
   const detectedCategory = category || (isUser ? detectCategory(message.content) : 'general');
   const isLongMessage = message.content.length > 300;
@@ -145,6 +152,31 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
+  };
+
+  const handleFeedback = async (type: 'helpful' | 'not-helpful') => {
+    try {
+      setFeedback(type);
+      await apiRequest('POST', `/api/messages/${message.id}/feedback`, {
+        type,
+        rating: rating > 0 ? rating : undefined
+      });
+      toast({
+        title: "Thanks for your feedback!",
+        description: "Your feedback helps improve our AI responses.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to submit feedback"
+      });
+    }
+  };
+
+  const handleRating = (stars: number) => {
+    setRating(stars);
+    setShowFeedback(true);
   };
 
   return (
@@ -247,26 +279,78 @@ export function MessageBubble({ message, isLatest, category, onQuickReply, disab
             </Button>
           )}
           
-          {/* Copy button (visible on hover) */}
+          {/* Action buttons (visible on hover) */}
           {!isUser && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "absolute top-2 right-2 p-1 transition-all duration-300 transform",
-                "opacity-0 group-hover:opacity-70 hover:opacity-100 hover:scale-110",
-                "hover:bg-primary/20 hover:text-primary",
-                copied && "opacity-100 text-green-500"
-              )}
-              onClick={handleCopy}
-              data-testid={`button-copy-${message.id}`}
-            >
-              {copied ? (
-                <Check className="h-3 w-3 animate-in zoom-in duration-200" /> 
-              ) : (
-                <Copy className="h-3 w-3" />
-              )}
-            </Button>
+            <div className={cn(
+              "absolute top-2 right-2 flex gap-1 transition-all duration-300",
+              "opacity-0 group-hover:opacity-70"
+            )}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "p-1 hover:opacity-100 hover:scale-110 hover:bg-primary/20 hover:text-primary",
+                  copied && "opacity-100 text-green-500"
+                )}
+                onClick={handleCopy}
+                data-testid={`button-copy-${message.id}`}
+              >
+                {copied ? (
+                  <Check className="h-3 w-3 animate-in zoom-in duration-200" /> 
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "p-1 hover:opacity-100 hover:scale-110 hover:bg-green-500/20 hover:text-green-500",
+                  feedback === 'helpful' && "opacity-100 text-green-500 bg-green-500/20"
+                )}
+                onClick={() => handleFeedback('helpful')}
+                data-testid={`button-helpful-${message.id}`}
+              >
+                <ThumbsUp className="h-3 w-3" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "p-1 hover:opacity-100 hover:scale-110 hover:bg-red-500/20 hover:text-red-500",
+                  feedback === 'not-helpful' && "opacity-100 text-red-500 bg-red-500/20"
+                )}
+                onClick={() => handleFeedback('not-helpful')}
+                data-testid={`button-not-helpful-${message.id}`}
+              >
+                <ThumbsDown className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+          
+          {/* Rating Stars (show on latest bot message) */}
+          {!isUser && isLatest && (
+            <div className={cn(
+              "mt-3 pt-2 border-t border-border/50 flex items-center gap-2 text-xs text-muted-foreground",
+              "opacity-70 hover:opacity-100 transition-opacity"
+            )}>
+              <span>Rate this response:</span>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => handleRating(star)}
+                  className={cn(
+                    "transition-all duration-200 hover:scale-110",
+                    star <= rating ? "text-yellow-500" : "text-muted-foreground/50 hover:text-yellow-400"
+                  )}
+                  data-testid={`star-rating-${star}-${message.id}`}
+                >
+                  <Star className={cn("h-4 w-4", star <= rating && "fill-current")} />
+                </button>
+              ))}
+            </div>
           )}
         </div>
         

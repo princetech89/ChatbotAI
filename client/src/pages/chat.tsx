@@ -46,11 +46,26 @@ export default function ChatPage() {
 
   // Send message mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const response = await apiRequest("POST", `/api/conversations/${currentConversationId}/messages`, {
-        content
-      });
-      return response.json();
+    mutationFn: async ({ content, attachments }: { content: string; attachments?: File[] }) => {
+      // If we have attachments, we'll need to handle file uploads
+      if (attachments && attachments.length > 0) {
+        const formData = new FormData();
+        formData.append('content', content);
+        attachments.forEach((file, index) => {
+          formData.append(`file_${index}`, file);
+        });
+
+        const response = await fetch(`/api/conversations/${currentConversationId}/messages`, {
+          method: 'POST',
+          body: formData,
+        });
+        return response.json();
+      } else {
+        const response = await apiRequest("POST", `/api/conversations/${currentConversationId}/messages`, {
+          content
+        });
+        return response.json();
+      }
     },
     onMutate: () => {
       setIsTyping(true);
@@ -86,9 +101,9 @@ export default function ChatPage() {
     }
   }, [messages, isTyping]);
 
-  const handleSendMessage = (content: string) => {
-    if (currentConversationId) {
-      sendMessageMutation.mutate(content);
+  const handleSendMessage = (content: string, attachments: File[] = []) => {
+    if (currentConversationId && (content.trim() || attachments.length > 0)) {
+      sendMessageMutation.mutate({ content, attachments });
     }
   };
 

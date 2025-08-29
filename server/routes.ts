@@ -1,11 +1,27 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
 import { storage } from "./storage";
 import { insertMessageSchema, insertConversationSchema } from "@shared/schema";
 import { GoogleGenAI } from "@google/genai";
 
 const genai = new GoogleGenAI({ 
   apiKey: process.env.GEMINI_API_KEY || "default_key"
+});
+
+// Configure multer for file uploads
+const upload = multer({
+  dest: 'uploads/',
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 5 // Max 5 files
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'text/plain', 'application/pdf'];
+    cb(null, allowedTypes.includes(file.mimetype));
+  }
 });
 
 // Helper functions for enhanced chatbot features
@@ -117,18 +133,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send a message and get AI response
-  app.post("/api/conversations/:id/messages", async (req, res) => {
+  // Send a message and get AI response (with file upload support)
+  app.post("/api/conversations/:id/messages", upload.array('file'), async (req, res) => {
     try {
       const { id: conversationId } = req.params;
       const { content } = req.body;
+      const files = req.files as Express.Multer.File[];
 
-      if (!content || typeof content !== 'string') {
-        return res.status(400).json({ error: "Message content is required" });
+      if ((!content || content.trim() === '') && (!files || files.length === 0)) {
+        return res.status(400).json({ error: "Message content or files are required" });
+      }
+
+      let messageContent = content || "Analyze these files:";
+      let hasImageAnalysis = false;
+
+      // Process uploaded files for analysis
+      if (files && files.length > 0) {
+        hasImageAnalysis = true;
+        const fileDescriptions = files.map(file => `📎 ${file.originalname} (${file.mimetype})`).join('\n');
+        messageContent += `\n\n${fileDescriptions}`;
       }
 
       // Analyze sentiment of user message
-      const sentiment = analyzeSentiment(content);
+      const sentiment = analyzeSentiment(messageContent);
       
       // Save user message with sentiment analysis
       const userMessage = await storage.createMessage({
@@ -195,19 +222,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Sending request to Gemini API for:', content);
         // Enhanced prompting for better formatted responses
         const isSearchOrInfoRequest = isSearchQuery || 
-          content.toLowerCase().includes('what is') || 
-          content.toLowerCase().includes('how to') || 
-          content.toLowerCase().includes('explain') || 
-          content.toLowerCase().includes('tell me about');
+          messageContent.toLowerCase().includes('what is') || 
+          messageContent.toLowerCase().includes('how to') || 
+          messageContent.toLowerCase().includes('explain') || 
+          messageContent.toLowerCase().includes('tell me about');
 
-        const response = await genai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: [
-            {
-              role: "user", 
-              parts: [{ 
-                text: isSearchOrInfoRequest ? 
-                  `You are an expert AI assistant. For this query, provide a comprehensive, well-formatted response using proper markdown:
+        // Prepare content for AI analysis
+        const contentParts: any[] = [];
+
+        // Add text content
+        const textPrompt = hasImageAnalysis && files.length > 0 ? 
+          `Analyze the uploaded files and answer this question: "${messageContent}"` :
+          isSearchOrInfoRequest ? 
+            `You are an expert AI assistant. For this query, provide a comprehensive, well-formatted response using proper markdown:
 
 ## Format Guidelines:
 - Use ## for main headings
@@ -220,10 +247,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 - Include specific facts, numbers, and examples
 - Make responses scannable and easy to read
 
-User question: ${content}` 
-                  :
-                  `You are a helpful AI assistant. Provide clear, accurate, and engaging responses with proper formatting when appropriate.\n\nUser question: ${content}` 
-              }]
+User question: ${messageContent}` 
+            :
+            `You are a helpful AI assistant. Provide clear, accurate, and engaging responses with proper formatting when appropriate.\n\nUser question: ${messageContent}`;
+
+        contentParts.push({ text: textPrompt });
+
+        // Add image files for analysis
+        if (files && files.length > 0) {
+          for (const file of files) {
+            if (file.mimetype.startsWith('image/')) {
+              try {
+                const imageBuffer = fs.readFileSync(file.path);
+                contentParts.push({
+                  inlineData: {
+                    data: imageBuffer.toString('base64'),
+                    mimeType: file.mimetype
+                  }
+                });
+              } catch (error) {
+                console.error('Error reading image file:', error);
+              }
+            } else if (file.mimetype === 'text/plain') {
+              try {
+                const textContent = fs.readFileSync(file.path, 'utf-8');
+                contentParts.push({ text: `File content of ${file.originalname}:\n${textContent}` });
+              } catch (error) {
+                console.error('Error reading text file:', error);
+              }
+            }
+          }
+        }
+
+        const response = await genai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [
+            {
+              role: "user", 
+              parts: contentParts
             }
           ],
         });
@@ -270,6 +331,17 @@ User question: ${content}`
             userSentiment: sentiment
           })
         });
+
+        // Clean up uploaded files after processing
+        if (files && files.length > 0) {
+          files.forEach(file => {
+            try {
+              fs.unlinkSync(file.path);
+            } catch (error) {
+              console.error('Error cleaning up file:', file.path, error);
+            }
+          });
+        }
 
         // Return response immediately for better user experience
         res.json({ userMessage, botMessage });
@@ -396,6 +468,22 @@ User question: ${content}`
 
     } catch (error) {
       res.status(500).json({ error: "Failed to process message" });
+    }
+  });
+
+  // Message feedback endpoint
+  app.post("/api/messages/:messageId/feedback", async (req, res) => {
+    try {
+      const { messageId } = req.params;
+      const { type, rating } = req.body;
+      
+      // Store feedback (in real app, save to database)
+      console.log(`Message ${messageId} feedback:`, { type, rating });
+      
+      res.json({ success: true, message: "Feedback recorded successfully" });
+    } catch (error) {
+      console.error('Error storing feedback:', error);
+      res.status(500).json({ error: "Failed to record feedback" });
     }
   });
 

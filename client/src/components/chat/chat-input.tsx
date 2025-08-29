@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Lightbulb, PenTool, Search, Settings, Sparkles } from "lucide-react";
+import { Send, Lightbulb, PenTool, Search, Settings, Sparkles, Upload, Camera, Image, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import VoiceAssistant from './voice-assistant';
 
 interface ChatInputProps {
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, attachments?: File[]) => void;
   disabled?: boolean;
   lastAssistantMessage?: string;
 }
@@ -37,7 +37,9 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
   const [selectedSuggestion, setSelectedSuggestion] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (message.length > 1) {
@@ -54,19 +56,37 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
+    if ((message.trim() || attachedFiles.length > 0) && !disabled) {
+      onSendMessage(message.trim() || "Analyze this file:", attachedFiles);
       setMessage("");
+      setAttachedFiles([]);
       setShowSuggestions(false);
       setIsTyping(false);
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'text/plain', 'application/pdf'];
+      return validTypes.includes(file.type) && file.size < 10 * 1024 * 1024; // 10MB limit
+    });
+    
+    setAttachedFiles(prev => [...prev, ...validFiles]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleVoiceInput = (transcript: string) => {
     setMessage(transcript);
     if (transcript.trim()) {
       setTimeout(() => {
-        onSendMessage(transcript.trim());
+        onSendMessage(transcript.trim(), []);
         setMessage("");
       }, 500);
     }
@@ -166,6 +186,18 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
             </div>
           </div>
 
+          {/* File Upload Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-3 rounded-xl hover:bg-primary/10 transition-all duration-300 hover:scale-110"
+            data-testid="button-file-upload"
+          >
+            <Upload className="h-4 w-4 text-muted-foreground" />
+          </Button>
+
           {/* Voice Assistant */}
           <div className="shrink-0">
             <VoiceAssistant 
@@ -182,17 +214,55 @@ export function ChatInput({ onSendMessage, disabled, lastAssistantMessage }: Cha
               "bg-primary text-primary-foreground p-3 rounded-xl transition-all duration-300 transform",
               "hover:bg-primary/90 hover:scale-110 hover:shadow-lg hover:shadow-primary/30",
               "focus:outline-none focus:ring-2 focus:ring-ring active:scale-95",
-              message.trim() && !disabled ? "pulse-glow" : "opacity-50 cursor-not-allowed"
+              (message.trim() || attachedFiles.length > 0) && !disabled ? "pulse-glow" : "opacity-50 cursor-not-allowed"
             )}
-            disabled={!message.trim() || disabled}
+            disabled={(!message.trim() && attachedFiles.length === 0) || disabled}
             data-testid="button-send"
           >
             <Send className={cn(
               "h-4 w-4 transition-all duration-200",
-              message.trim() && !disabled && "animate-pulse"
+              (message.trim() || attachedFiles.length > 0) && !disabled && "animate-pulse"
             )} />
           </Button>
         </form>
+
+        {/* File Attachments Preview */}
+        {attachedFiles.length > 0 && (
+          <div className="mt-3 p-3 bg-muted/30 rounded-xl border border-border">
+            <div className="flex flex-wrap gap-2">
+              {attachedFiles.map((file, index) => (
+                <div key={index} className="flex items-center gap-2 bg-primary/10 px-3 py-2 rounded-lg border border-primary/20">
+                  {file.type.startsWith('image/') ? (
+                    <Image className="h-4 w-4 text-primary" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-primary" />
+                  )}
+                  <span className="text-sm font-medium text-primary truncate max-w-32">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(index)}
+                    className="text-muted-foreground hover:text-destructive transition-colors ml-2 font-bold"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              📎 {attachedFiles.length} file{attachedFiles.length !== 1 ? 's' : ''} attached - The AI will analyze your files
+            </p>
+          </div>
+        )}
+
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*,.txt,.pdf"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
       </div>
     </footer>
   );

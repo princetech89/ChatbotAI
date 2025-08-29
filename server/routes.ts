@@ -189,20 +189,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content.toLowerCase().includes('ocean')
       );
 
-      // Get AI response
+      // Get AI response with optimized settings for faster response
       try {
-        // Note that the newest Gemini model series is "gemini-2.5-flash" or gemini-2.5-pro"
+        // Use faster model and optimized prompt for quick responses
         const response = await genai.models.generateContent({
           model: "gemini-2.5-flash",
+          config: {
+            maxOutputTokens: 1000, // Limit response length for faster processing
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+          },
           contents: [
             {
               role: "user",
               parts: [{ 
-                text: `You are a helpful AI assistant with advanced capabilities. Provide clear, accurate, and engaging responses to user questions. Be conversational but informative.
-
-${shouldGenerateImage ? 'The user has requested visual content. Along with your text response, I will generate an image related to their request.' : ''}
-
-User question: ${content}` 
+                text: `Be helpful, concise, and engaging. ${shouldGenerateImage ? 'Visual content will be generated.' : ''}\n\n${content}` 
               }]
             }
           ],
@@ -248,163 +250,14 @@ User question: ${content}`
           })
         });
 
-        // Generate chart/visualization if requested
-        let chartGenerated = false;
-        if (shouldGenerateChart) {
-          try {
-            // Generate intelligent chart data based on the specific search query
-            const chartPrompt = `Based on this search query: "${content}"
-            
-            Create realistic, relevant chart data that would help visualize information about this topic. 
-            Consider:
-            - What type of chart best represents this data (bar for comparisons, line for trends, pie for parts of whole)
-            - What realistic data points would be educational and interesting
-            - Make the data current and accurate to 2024/2025 trends
-            - Include 6-12 meaningful data points
-            - Create a descriptive title and helpful description
-            
-            Generate the chart data as JSON.`;
+        // Return response immediately for better user experience
+        res.json({ userMessage, botMessage });
 
-            const chartResponse = await genai.models.generateContent({
-              model: "gemini-2.5-pro",
-              config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                  type: "object",
-                  properties: {
-                    chartType: { type: "string", enum: ["bar", "line", "pie", "area", "scatter"] },
-                    title: { type: "string" },
-                    data: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          label: { type: "string" },
-                          value: { type: "number" },
-                          category: { type: "string" }
-                        }
-                      }
-                    },
-                    description: { type: "string" }
-                  }
-                }
-              },
-              contents: chartPrompt
-            });
+        // Skip visual content generation for faster responses
+        // (Visual content can be requested separately if needed)
 
-            if (chartResponse.text) {
-              const chartData = JSON.parse(chartResponse.text);
-              // Save chart message
-              const chartMessage = await storage.createMessage({
-                conversationId,
-                content: `CHART_DATA:${JSON.stringify(chartData)}`,
-                role: "assistant",
-              });
-              chartGenerated = true;
-            }
-          } catch (error) {
-            console.error("Chart generation error:", error);
-            // Create a simple fallback chart
-            try {
-              const fallbackChart = {
-                chartType: "bar",
-                title: `Information about: ${content}`,
-                data: [
-                  { label: "Topic A", value: 35, category: "info" },
-                  { label: "Topic B", value: 28, category: "info" },
-                  { label: "Topic C", value: 42, category: "info" },
-                  { label: "Topic D", value: 19, category: "info" },
-                  { label: "Topic E", value: 31, category: "info" }
-                ],
-                description: "Sample visualization for your search query"
-              };
-              
-              const fallbackMessage = await storage.createMessage({
-                conversationId,
-                content: `CHART_DATA:${JSON.stringify(fallbackChart)}`,
-                role: "assistant",
-              });
-              chartGenerated = true;
-            } catch (fallbackError) {
-              console.error('Fallback chart creation failed:', fallbackError);
-            }
-          }
-        }
-
-        // Generate image if requested or for visual search topics
-        let imageGenerated = false;
-        if (shouldGenerateImage || shouldAutoGenerateImage) {
-          try {
-            // Create image prompt based on the search topic or explicit request
-            let imagePrompt;
-            if (shouldGenerateImage) {
-              imagePrompt = content.replace(/generate image|create image|draw|picture of|show me|image of/gi, '').trim();
-            } else {
-              // For auto-generated images, create a relevant visual prompt
-              imagePrompt = `A high-quality, detailed illustration or photograph related to: ${content}`;
-            }
-            const enhancedPrompt = imagePrompt || content;
-            
-            // Note: only this gemini model supports image generation
-            const imageResponse = await genai.models.generateContent({
-              model: "gemini-2.0-flash-exp",
-              contents: [{ role: "user", parts: [{ text: `Create a high-quality, detailed image: ${enhancedPrompt}` }] }],
-              config: {
-                responseModalities: ["TEXT", "IMAGE"],
-              },
-            });
-
-            if (imageResponse.candidates && imageResponse.candidates[0]?.content?.parts) {
-              for (const part of imageResponse.candidates[0].content.parts) {
-                if (part.inlineData && part.inlineData.data) {
-                  // Save image message
-                  const imageMessage = await storage.createMessage({
-                    conversationId,
-                    content: `![Generated Image](data:image/jpeg;base64,${part.inlineData.data})`,
-                    role: "assistant",
-                  });
-                  imageGenerated = true;
-                  break;
-                }
-              }
-            }
-          } catch (imageError) {
-            console.error('Image generation failed:', imageError);
-            // Create a fallback simple chart if this was supposed to be a data visualization
-            if (shouldGenerateChart) {
-              try {
-                const fallbackChart = {
-                  chartType: "bar",
-                  title: `Data Related to: ${content}`,
-                  data: [
-                    { label: "Sample A", value: 45, category: "data" },
-                    { label: "Sample B", value: 32, category: "data" },
-                    { label: "Sample C", value: 67, category: "data" },
-                    { label: "Sample D", value: 23, category: "data" },
-                    { label: "Sample E", value: 54, category: "data" }
-                  ],
-                  description: "Sample data visualization for your query"
-                };
-                
-                const fallbackChartMessage = await storage.createMessage({
-                  conversationId,
-                  content: `CHART_DATA:${JSON.stringify(fallbackChart)}`,
-                  role: "assistant",
-                });
-              } catch (fallbackError) {
-                console.error('Fallback chart creation failed:', fallbackError);
-              }
-            }
-          }
-        }
-
-        res.json({
-          userMessage,
-          botMessage,
-          imageGenerated,
-        });
-
-      } catch (aiError) {
+      } catch (error) {
+        console.error('AI response error:', error);
         // If AI fails, still save user message but return error for bot response
         const errorMessage = await storage.createMessage({
           conversationId,
